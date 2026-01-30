@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cashflows</title>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    .row { display:flex; gap:16px; align-items:center; margin: 8px 0; flex-wrap: wrap; }
+    input, select { padding: 6px; }
+    table { border-collapse: collapse; margin-top: 12px; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px 10px; }
+    .muted { color:#666; }
+    .btn { padding: 6px 10px; cursor:pointer; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ccc; border-radius: 999px; }
+  </style>
+</head>
+<body>
+  <h2>Cashflows</h2>
+
+  <div class="row">
+    <a href="/admin/cashflows?status=PENDING">PENDING</a>
+    <a href="/admin/cashflows?status=CONFIRMED">CONFIRMED</a>
+    <a href="/admin/cashflows?status=CANCELLED">CANCELLED</a>
+    <span class="pill">status={{ status }}</span>
+  </div>
+
+  <h3>Create request</h3>
+  <form method="post" action="/admin/cashflows">
+    <div class="row">
+      <label>Fund</label>
+      <select name="fund_id" required>
+        {% for f in funds %}
+          <option value="{{ f.id }}">#{{ f.id }} {{ f.name }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Investor</label>
+      <select name="investor_id" required>
+        {% for i in investors %}
+          <option value="{{ i.id }}">#{{ i.id }} {{ i.name }} ({{ i.email }})</option>
+        {% endfor %}
+      </select>
+
+      <label>Kind</label>
+      <select name="kind" required>
+        <option value="DEPOSIT">DEPOSIT</option>
+        <option value="WITHDRAW">WITHDRAW</option>
+      </select>
+
+      <label>CCY</label>
+      <input name="currency" value="USD" style="width:80px;" required>
+
+      <label>Amount</label>
+      <input name="amount" placeholder="1000" style="width:140px;" required>
+
+      <label>Note</label>
+      <input name="note" placeholder="optional" style="width:220px;">
+      <button class="btn" type="submit">Create</button>
+    </div>
+  </form>
+
+  <h3>Requests</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Fund</th><th>Investor</th><th>Kind</th><th>Amount</th><th>Status</th><th>Requested</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in flows %}
+        <tr>
+          <td>{{ f.id }}</td>
+          <td>#{{ f.fund_id }} {{ fund_map[f.fund_id].name if f.fund_id in fund_map else '' }}</td>
+          <td>#{{ f.investor_id }} {{ inv_map[f.investor_id].name if f.investor_id in inv_map else '' }}</td>
+          <td>{{ f.kind }}</td>
+          <td>{{ f.amount }} {{ f.currency }}</td>
+          <td>{{ f.status }}</td>
+          <td>{{ f.requested_at }}</td>
+          <td>
+            {% if f.status == 'PENDING' %}
+              <form style="display:inline;" method="post" action="/admin/cashflows/{{ f.id }}/confirm">
+                <button class="btn" type="submit">Confirm</button>
+              </form>
+              <form style="display:inline;" method="post" action="/admin/cashflows/{{ f.id }}/cancel">
+                <button class="btn" type="submit">Cancel</button>
+              </form>
+            {% else %}
+              <span class="muted">-</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

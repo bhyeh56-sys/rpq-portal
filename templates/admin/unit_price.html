@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Unit Price</title>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    .row { display:flex; gap:16px; align-items:center; margin: 8px 0; }
+    input, select { padding: 6px; }
+    table { border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px 10px; }
+    .muted { color:#666; }
+  </style>
+</head>
+<body>
+  <h2>Unit Price</h2>
+
+  <form method="get" action="/admin/unit-price">
+    <div class="row">
+      <label>Fund</label>
+      <select name="fund_id" onchange="this.form.submit()">
+        {% for f in funds %}
+          <option value="{{ f.id }}" {% if f.id == fund_id %}selected{% endif %}>
+            #{{ f.id }} {{ f.name }}
+          </option>
+        {% endfor %}
+      </select>
+      <span class="muted">Select fund to view latest price</span>
+    </div>
+  </form>
+
+  <h3>Latest</h3>
+  {% if latest %}
+    <div class="row">
+      <div><b>Price</b>: {{ latest[0] }}</div>
+      <div><b>As of</b>: {{ latest[1] }}</div>
+    </div>
+  {% else %}
+    <div class="muted">No unit price yet.</div>
+  {% endif %}
+
+  <h3>Add / Update</h3>
+  <form method="post" action="/admin/unit-price">
+    <input type="hidden" name="fund_id" value="{{ fund_id }}"/>
+
+    <div class="row">
+      <label>asof_at</label>
+      <input name="asof_at" placeholder="2026-01-26T17:45:00+09:00" style="width: 320px;" required>
+    </div>
+
+    <div class="row">
+      <label>price</label>
+      <input name="price" placeholder="1.000000" style="width: 180px;" required>
+    </div>
+
+    <div class="row">
+      <label>note</label>
+      <input name="note" placeholder="optional" style="width: 360px;">
+    </div>
+
+    <div class="row">
+      <button type="submit">Save</button>
+      <span class="muted">Tip: curl은 +09:00의 +가 공백이 되니 --data-urlencode 사용</span>
+    </div>
+  </form>
+</body>
+</html>

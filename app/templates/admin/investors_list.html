@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Admin - Investors</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
+    .muted { color: #777; }
+    .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h2>Investors</h2>
+
+  <form method="get" action="/admin/investors">
+    <input name="q" value="{{ q }}" placeholder="Search name/email" />
+    <label style="margin-left:8px">
+      <input type="checkbox" name="include_inactive" value="true" {% if include_inactive %}checked{% endif %}/>
+      include inactive
+    </label>
+    <button type="submit">Search</button>
+  </form>
+
+  <hr/>
+
+  <h3>Create investor</h3>
+  <form
+    hx-post="/admin/investors"
+    hx-headers='{"X-Admin-Id":"1"}'
+    hx-target="#investor-tbody"
+    hx-swap="afterbegin"
+    >
+    <input name="name" placeholder="name" required />
+    <input name="email" placeholder="email" required />
+    <input name="memo" placeholder="memo(optional)" />
+    <button type="submit">Create</button>
+  </form>
+
+  <hr/>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="investor-tbody">
+      {% for inv in investors %}
+        {% include "admin/investor_row.html" %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="muted" style="margin-top:16px;">
+    MVP 인증: 요청 헤더 <code>X-Admin-Id</code> 필요 (현재는 1로 고정)
+  </p>
+</body>
+</html>

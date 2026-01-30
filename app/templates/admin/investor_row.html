@@ -1,0 +1,32 @@
+<tr id="inv-{{ inv.id }}">
+  <td>{{ inv.id }}</td>
+  <td>{{ inv.name }}</td>
+  <td>{{ inv.email }}</td>
+  <td>
+    {% if inv.is_active %}
+      <span class="badge">Active</span>
+    {% else %}
+      <span class="badge">Inactive</span>
+      <span class="muted">
+        {% if inv.deleted_reason %} ({{ inv.deleted_reason }}){% endif %}
+      </span>
+    {% endif %}
+  </td>
+  <td>
+    {% if inv.is_active %}
+      <button
+        hx-delete="/admin/investors/{{ inv.id }}"
+        hx-headers='{"X-Admin-Id":"1"}'
+        hx-target="#inv-{{ inv.id }}"
+        hx-swap="outerHTML"
+      >Deactivate</button>
+    {% else %}
+      <button
+        hx-post="/admin/investors/{{ inv.id }}/restore"
+        hx-headers='{"X-Admin-Id":"1"}'
+        hx-target="#inv-{{ inv.id }}"
+        hx-swap="outerHTML"
+      >Restore</button>
+    {% endif %}
+  </td>
+</tr>
