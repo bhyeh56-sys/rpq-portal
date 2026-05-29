@@ -39,6 +39,19 @@ psql "$PSQL_DATABASE_URL" -f schema.sql
 psql "$PSQL_DATABASE_URL" -f scripts/seed.sql
 ```
 
+If the system PostgreSQL service is unavailable in a sandbox, a user-owned temporary cluster can be used instead:
+
+```bash
+/usr/lib/postgresql/14/bin/initdb -D /tmp/rpq_pg -A trust
+/usr/lib/postgresql/14/bin/pg_ctl -D /tmp/rpq_pg -l /tmp/rpq_pg.log \
+  -o "-h 127.0.0.1 -p 55432 -c unix_socket_directories=/tmp" start
+export DATABASE_URL='postgresql+psycopg://rpq_user:rpq_pass@127.0.0.1:55432/rpq_db'
+export PSQL_DATABASE_URL='postgresql://rpq_user:rpq_pass@127.0.0.1:55432/rpq_db'
+/usr/lib/postgresql/14/bin/psql -h 127.0.0.1 -p 55432 -U "$USER" -d postgres \
+  -c "CREATE ROLE rpq_user LOGIN PASSWORD 'rpq_pass';" \
+  -c "CREATE DATABASE rpq_db OWNER rpq_user;"
+```
+
 Seed data creates:
 
 - fund `id=1`
