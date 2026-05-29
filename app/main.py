@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from .admin_investors import router as admin_investors_router
 from .admin_cashflows import router as admin_cashflows_router
 from .fx_webhook import router as fx_router
+from portal import router as portal_router
 
 app = FastAPI(title="RPQ Portal")
 
@@ -14,6 +15,7 @@ app.state.templates = templates
 app.include_router(admin_investors_router)
 app.include_router(admin_cashflows_router)
 app.include_router(fx_router)
+app.include_router(portal_router)
 
 @app.get("/health")
 def health():
