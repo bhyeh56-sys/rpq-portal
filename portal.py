@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, List, Any, Dict
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import psycopg
 from psycopg.rows import dict_row
 
-DATABASE_URL = "postgresql://rpq_user:rpq_pass@127.0.0.1:5432/rpq_db"
+from app.db import DATABASE_URL as APP_DATABASE_URL
+
+
+DATABASE_URL = APP_DATABASE_URL.replace("postgresql+psycopg://", "postgresql://", 1)
 
 router = APIRouter(prefix="/portal", tags=["portal"])
 
@@ -67,47 +70,52 @@ class LedgerListOut(BaseModel):
 
 # --------- SQL ---------
 SQL_PORTAL_SUMMARY = """
-with latest_nav as (
-  select fund_id, unit_nav, nav_time
-  from nav_snapshots
+with latest_price as (
+  select fund_id, price, asof_at
+  from unit_price_points
   where fund_id = %(fund_id)s
-  order by nav_time desc
+  order by asof_at desc
   limit 1
 ),
 flows as (
   select
     fund_id,
     investor_id,
-    coalesce(sum(amount) filter (where entry_type in ('DEPOSIT','WITHDRAWAL')), 0) as net_flow
+    coalesce(sum(amount) filter (where account = 'CASH'), 0) as net_flow
   from ledger_entries
   where fund_id = %(fund_id)s
     and investor_id = %(investor_id)s
   group by fund_id, investor_id
 )
 select
-  iu.fund_id,
-  iu.investor_id,
-  iu.units,
-  ln.unit_nav as latest_unit_nav,
-  ln.nav_time as latest_nav_time,
-  (iu.units * ln.unit_nav) as valuation,
+  ip.fund_id,
+  ip.investor_id,
+  ip.units,
+  lp.price as latest_unit_nav,
+  lp.asof_at as latest_nav_time,
+  (ip.units * lp.price) as valuation,
   coalesce(f.net_flow, 0) as net_flow,
-  (iu.units * ln.unit_nav) - coalesce(f.net_flow, 0) as pnl,
+  (ip.units * lp.price) - coalesce(f.net_flow, 0) as pnl,
   case
     when coalesce(f.net_flow, 0) > 0
-    then ((iu.units * ln.unit_nav) - coalesce(f.net_flow, 0)) / coalesce(f.net_flow, 0)
+    then ((ip.units * lp.price) - coalesce(f.net_flow, 0)) / coalesce(f.net_flow, 0)
     else null
   end as return_ratio
-from investor_units iu
-join latest_nav ln on ln.fund_id = iu.fund_id
-left join flows f on f.fund_id = iu.fund_id and f.investor_id = iu.investor_id
-where iu.fund_id = %(fund_id)s
-  and iu.investor_id = %(investor_id)s;
+from investor_positions ip
+join latest_price lp on lp.fund_id = ip.fund_id
+left join flows f on f.fund_id = ip.fund_id and f.investor_id = ip.investor_id
+where ip.fund_id = %(fund_id)s
+  and ip.investor_id = %(investor_id)s;
 """
 
 SQL_PORTAL_LEDGER = """
 select
-  id, occurred_at, entry_type, ccy, amount, memo
+  id,
+  occurred_at,
+  account as entry_type,
+  currency as ccy,
+  amount,
+  memo
 from ledger_entries
 where fund_id = %(fund_id)s
   and investor_id = %(investor_id)s
@@ -128,10 +136,10 @@ def me_summary(
         row = cur.fetchone()
 
     if not row:
-        # common causes: no nav yet OR no investor_units row yet
+        # common causes: no unit price yet OR no investor position row yet
         raise HTTPException(
             status_code=404,
-            detail="Summary not available (missing NAV snapshot or investor units).",
+            detail="Summary not available (missing unit price or investor position).",
         )
 
     return PortalSummaryOut(**row)

@@ -139,6 +139,11 @@ class CashflowRequest(Base):
 
     status = Column(String, nullable=False, default="PENDING")  # PENDING/CONFIRMED/CANCELLED
 
+    note = Column(Text)
+    created_by_admin = Column(BigInteger)
+    confirmed_by_admin = Column(BigInteger)
+    cancelled_by_admin = Column(BigInteger)
+
     requested_at = Column(DateTime(timezone=True), server_default=func.now())
     confirmed_at = Column(DateTime(timezone=True))
     cancelled_at = Column(DateTime(timezone=True))
@@ -148,17 +153,24 @@ class LedgerEntry(Base):
     __tablename__ = "ledger_entries"
     __table_args__ = (
         Index("ix_ledger_entries_source", "source_type", "source_id"),
+        Index("ix_ledger_entries_investor_occurred", "fund_id", "investor_id", "occurred_at"),
     )
 
     id = Column(BigInteger, primary_key=True)
+
+    fund_id = Column(BigInteger, ForeignKey("funds.id"), nullable=False)
+    investor_id = Column(BigInteger, ForeignKey("investors.id"), nullable=False)
 
     source_type = Column(String, nullable=False)
     source_id = Column(BigInteger, nullable=False)
 
     account = Column(String, nullable=False)  # 'CASH' / 'UNITS'
+    currency = Column(String, nullable=False, default="USD")
     amount = Column(Numeric(30, 10), nullable=False)
     unit_price = Column(Numeric(30, 10))
+    memo = Column(Text)
 
+    occurred_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

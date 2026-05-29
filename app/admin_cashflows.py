@@ -54,6 +54,7 @@ def unit_price_page(
     funds = db.execute(select(Fund).order_by(Fund.id.asc())).scalars().all()
     latest = latest_unit_price(db, fund_id)
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/unit_price.html",
         {"request": request, "funds": funds, "fund_id": fund_id, "latest": latest},
     )
@@ -119,6 +120,7 @@ def cashflows_page(
     inv_map = {i.id: i for i in investors}
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/cashflows.html",
         {"request": request, "funds": funds, "investors": investors, "flows": flows,
          "status": status, "fund_map": fund_map, "inv_map": inv_map},
@@ -239,6 +241,7 @@ def confirm_cashflow(
         currency=flow.currency,
         amount=cash_delta,
         unit_price=px,
+        memo=flow.note,
     ))
     db.add(LedgerEntry(
         fund_id=flow.fund_id,
@@ -249,6 +252,7 @@ def confirm_cashflow(
         currency=flow.currency,
         amount=unit_delta,
         unit_price=px,
+        memo=flow.note,
     ))
 
     # Position update

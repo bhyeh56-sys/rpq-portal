@@ -61,6 +61,7 @@ def investors_page(
     )
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investors_list.html",
         {
             "request": request,
@@ -123,6 +124,7 @@ def create_investor(
     db.refresh(investor)
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
         {"request": request, "inv": investor},
     )
@@ -161,6 +163,7 @@ def backfill_positions_for_investor(
     db.refresh(investor)
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
         {"request": request, "inv": investor},
     )
@@ -197,6 +200,7 @@ def deactivate_investor(
         db.refresh(investor)
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
         {"request": request, "inv": investor},
     )
@@ -230,6 +234,7 @@ def restore_investor(
     db.refresh(investor)
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
         {"request": request, "inv": investor},
     )
