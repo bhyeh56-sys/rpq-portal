@@ -16,6 +16,12 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
+For local test development:
+
+```bash
+.venv/bin/pip install -r requirements-dev.txt
+```
+
 ## Database
 
 Create a local PostgreSQL user and database. Replace the password with a local-only value.
@@ -37,6 +43,15 @@ Initialize schema and seed MVP data:
 export PSQL_DATABASE_URL='postgresql://rpq_user:<password>@127.0.0.1:5432/rpq_db'
 psql "$PSQL_DATABASE_URL" -f schema.sql
 psql "$PSQL_DATABASE_URL" -f scripts/seed.sql
+```
+
+The same reset can be automated with:
+
+```bash
+export RPQ_ADMIN_DATABASE_URL='postgresql://postgres:<password>@127.0.0.1:5432/postgres'
+export PSQL_DATABASE_URL='postgresql://rpq_user:<password>@127.0.0.1:5432/rpq_db'
+export DATABASE_URL='postgresql+psycopg://rpq_user:<password>@127.0.0.1:5432/rpq_db'
+scripts/reset_local_db.sh
 ```
 
 If the system PostgreSQL service is unavailable in a sandbox, a user-owned temporary cluster can be used instead:
@@ -80,6 +95,32 @@ curl -i "http://127.0.0.1:8000/portal/me/summary?fund_id=1" -H "X-Investor-Id: 1
 curl -i "http://127.0.0.1:8000/portal/me/ledger?fund_id=1" -H "X-Investor-Id: 1"
 ```
 
+## Pytest
+
+Run import and route tests:
+
+```bash
+.venv/bin/pytest
+```
+
+Run live HTTP smoke tests against a running local server:
+
+```bash
+export RPQ_TEST_BASE_URL='http://127.0.0.1:8000'
+.venv/bin/pytest
+```
+
+Live tests expect the seeded `fund_id=1` and `X-Investor-Id: 1` data.
+
+## Domain Rules
+
+- `unit_price_points` stores fund unit prices over time.
+- `investor_positions.units` stores the current units per fund/investor.
+- `cashflow_requests` stores admin-created deposit/withdraw requests.
+- Confirming a cashflow creates two `ledger_entries`: one `CASH` row and one `UNITS` row.
+- Deposit amounts are positive; withdraw confirmations create negative `CASH` and `UNITS` ledger amounts.
+- Portal net flow sums only `ledger_entries.account = 'CASH'`.
+
 Expected portal summary with seed data:
 
 ```json
@@ -101,6 +142,20 @@ Expected portal summary with seed data:
 - http://127.0.0.1:8000/admin/cashflows
 - http://127.0.0.1:8000/admin/unit-price
 - http://127.0.0.1:8000/docs
+
+## End User Test Flow
+
+1. Open `/admin/investors`.
+2. Create an investor, then use the row action to deactivate and restore it.
+3. Open `/admin/unit-price`.
+4. Add a newer unit price for fund `1`, for example `2026-02-01T00:00:00+09:00` at price `12`.
+5. Open `/admin/cashflows`.
+6. Create a `DEPOSIT` request for investor `1`, then confirm it.
+7. Create a `WITHDRAW` request and cancel it.
+8. Create another `WITHDRAW` request and confirm it.
+9. Call `/portal/me/summary?fund_id=1` with `X-Investor-Id: 1` and confirm valuation/net flow changed.
+10. Call `/portal/me/ledger?fund_id=1` with `X-Investor-Id: 1` and confirm the new `CASH` and `UNITS` ledger rows appear.
+11. Open `/docs` and confirm admin, portal, health, and FX routes are listed.
 
 ## Notes
 
