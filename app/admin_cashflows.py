@@ -239,6 +239,7 @@ def confirm_cashflow(
         currency=flow.currency,
         amount=cash_delta,
         unit_price=px,
+        memo=flow.note,
     ))
     db.add(LedgerEntry(
         fund_id=flow.fund_id,
@@ -249,6 +250,7 @@ def confirm_cashflow(
         currency=flow.currency,
         amount=unit_delta,
         unit_price=px,
+        memo=flow.note,
     ))
 
     # Position update
