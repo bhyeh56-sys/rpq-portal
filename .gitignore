@@ -8,3 +8,16 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+.env
+.venv/
+__pycache__/
+*.pyc
+*.log
+
+*.bak
+*.bak_*
+*.bak2_*
+*.save
+templates/*.bak_*/
+templates/**/*.bak_*

@@ -1,7 +1,8 @@
 # app/fx_webhook.py
+import json
 import hmac
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -23,6 +24,17 @@ def _parse_dt(s: str) -> datetime:
     return datetime.fromisoformat(s)
 
 
+def _bucket_asof_hour05(dt: datetime) -> datetime:
+    """
+    Bucket time to HH:05:00 of the same hour.
+    If dt is earlier than HH:05 (e.g. HH:03), bucket to previous hour's :05.
+    """
+    b = dt.replace(minute=5, second=0, microsecond=0)
+    if dt.minute < 5:
+        b = b - timedelta(hours=1)
+    return b
+
+
 def _D(x) -> Decimal:
     try:
         return Decimal(str(x))
@@ -33,8 +45,16 @@ def _D(x) -> Decimal:
 def _verify_sig(secret: str, body: bytes, sig_hex: str | None):
     if not sig_hex:
         raise HTTPException(status_code=401, detail="Missing X-Signature")
-    mac = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(mac, sig_hex):
+
+    sig = sig_hex.strip().lower()
+
+    # A) 표준: HMAC-SHA256(secret, body_bytes)
+    mac_hmac = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
+
+    # B) 레거시: SHA256(secret + body_bytes)
+    mac_concat = hashlib.sha256(secret.encode("utf-8") + body).hexdigest()
+
+    if not (hmac.compare_digest(mac_hmac, sig) or hmac.compare_digest(mac_concat, sig)):
         raise HTTPException(status_code=401, detail="Bad signature")
 
 
@@ -57,7 +77,9 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Body must be JSON")
 
     try:
-        asof_at = _parse_dt(payload.get("asof_at"))
+        asof_at_raw = _parse_dt(payload.get("asof_at"))
+        asof_at = _bucket_asof_hour05(asof_at_raw)
+
         balance = _D(payload.get("balance"))
         equity = _D(payload.get("equity"))
         margin = payload.get("margin")
@@ -69,14 +91,14 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
 
     profit = equity - balance
 
-    # 1) snapshot UPSERT (idempotent)
+    # 1) snapshot UPSERT (idempotent on bucketed asof_at)
     db.execute(
         text(
             """
             INSERT INTO fx_account_snapshots
               (fx_account_id, asof_at, balance, equity, margin, free_margin, profit, raw)
             VALUES
-              (:fxid, :asof, :bal, :eq, :m, :fm, :pf, :raw::json)
+              (:fxid, :asof, :bal, :eq, :m, :fm, :pf, CAST(:raw AS jsonb))
             ON CONFLICT (fx_account_id, asof_at)
             DO UPDATE SET
               balance = EXCLUDED.balance,
@@ -95,7 +117,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
             "m": margin_d,
             "fm": free_d,
             "pf": profit,
-            "raw": payload,
+            "raw": json.dumps(payload),
         },
     )
 
@@ -106,7 +128,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
     ).scalar_one()
     total_units = Decimal(str(total_units))
 
-    # 3) unit price UPSERT if units > 0
+    # 3) unit price UPSERT (same bucketed asof_at)
     unit_price = None
     auto_created = False
     if total_units > 0:
@@ -124,7 +146,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
                 "fid": fx.fund_id,
                 "asof": asof_at,
                 "px": unit_price,
-                "note": f"AUTO from FX snapshot fx_account_id={fx.id}",
+                "note": f"AUTO bucketed(HH:05) from FX snapshot fx_account_id={fx.id}",
             },
         )
         auto_created = True
@@ -135,7 +157,8 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
         "ok": True,
         "fx_account_id": fx.id,
         "fund_id": fx.fund_id,
-        "asof_at": payload.get("asof_at"),
+        "asof_at_raw": payload.get("asof_at"),
+        "asof_at_bucket": asof_at.isoformat(),
         "balance": str(balance),
         "equity": str(equity),
         "profit": str(profit),
@@ -144,3 +167,42 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
         "auto_unit_price_created": auto_created,
         "idempotent": True,
     }
+
+
+@router.get("/snapshots/latest")
+def latest_snapshot(fx_account_id: int, db: Session = Depends(get_db)):
+    row = db.execute(
+        text(
+            """
+            select id, fx_account_id, asof_at, balance, equity, profit
+            from fx_account_snapshots
+            where fx_account_id = :fxid
+            order by asof_at desc
+            limit 1
+            """
+        ),
+        {"fxid": fx_account_id},
+    ).mappings().first()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="no snapshots")
+    return dict(row)
+
+
+@router.get("/snapshots/recent")
+def recent_snapshots(fx_account_id: int, limit: int = 20, db: Session = Depends(get_db)):
+    limit = max(1, min(int(limit), 200))
+    rows = db.execute(
+        text(
+            """
+            select id, fx_account_id, asof_at, balance, equity, profit
+            from fx_account_snapshots
+            where fx_account_id = :fxid
+            order by asof_at desc
+            limit :lim
+            """
+        ),
+        {"fxid": fx_account_id, "lim": limit},
+    ).mappings().all()
+
+    return {"count": len(rows), "items": [dict(r) for r in rows]}

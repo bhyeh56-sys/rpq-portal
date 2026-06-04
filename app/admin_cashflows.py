@@ -152,10 +152,7 @@ def create_cashflow(
         raise HTTPException(status_code=400, detail="Invalid amount")
 
     flow = CashflowRequest(
-        fund_id=int(fund_id),
-        investor_id=int(investor_id),
         kind=kind,
-        currency=currency,
         amount=amt,
         status="PENDING",
         note=note,
@@ -231,22 +228,16 @@ def confirm_cashflow(
 
     # Ledger 2 lines
     db.add(LedgerEntry(
-        fund_id=flow.fund_id,
-        investor_id=flow.investor_id,
         source_type="CASHFLOW_REQUEST",
         source_id=flow.id,
         account="CASH",
-        currency=flow.currency,
         amount=cash_delta,
         unit_price=px,
     ))
     db.add(LedgerEntry(
-        fund_id=flow.fund_id,
-        investor_id=flow.investor_id,
         source_type="CASHFLOW_REQUEST",
         source_id=flow.id,
         account="UNITS",
-        currency=flow.currency,
         amount=unit_delta,
         unit_price=px,
     ))
@@ -263,7 +254,6 @@ def confirm_cashflow(
 
     flow.status = "CONFIRMED"
     flow.confirmed_at = func.now()
-    flow.confirmed_by_admin = admin_id
 
     audit(db, admin_id, "CASHFLOW_CONFIRM", "cashflow_request", flow.id, {
         "unit_price": str(px),
@@ -290,7 +280,6 @@ def cancel_cashflow(
 
     flow.status = "CANCELLED"
     flow.cancelled_at = func.now()
-    flow.cancelled_by_admin = admin_id
 
     audit(db, admin_id, "CASHFLOW_CANCEL", "cashflow_request", flow.id)
     db.commit()

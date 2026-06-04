@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Investor Portal</title>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif; max-width:900px; margin:24px auto; padding:0 12px;}
+    .topbar{display:flex; justify-content:space-between; align-items:center; gap:12px;}
+    .card{border:1px solid #ddd; border-radius:10px; padding:14px; margin:12px 0;}
+    table{border-collapse:collapse; width:100%;}
+    th,td{border-bottom:1px solid #eee; padding:8px; text-align:left; vertical-align:top;}
+    .muted{color:#666; font-size:13px;}
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #ccc; font-size:12px;}
+    .ok{border-color:#2e7d32; color:#2e7d32;}
+    .warn{border-color:#b26a00; color:#b26a00;}
+    .bad{border-color:#b00020; color:#b00020;}
+    button{padding:8px 12px; border:1px solid #333; border-radius:8px; background:#111; color:#fff; cursor:pointer;}
+    .right form{display:inline;}
+    .kv{display:grid; grid-template-columns:160px 1fr; gap:6px 12px; margin-top:8px;}
+    .kv div{padding:2px 0;}
+    .num{font-variant-numeric: tabular-nums;}
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div>
+      <h2 style="margin:0">Investor Portal</h2>
+      <div class="muted">fund_id={{ fund_id }} · investor_id={{ investor_id }}</div>
+    </div>
+    <div class="right">
+      <form method="post" action="/portal/logout">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 10px 0">Summary</h3>
+
+    <div class="kv">
+      <div class="muted">Units</div>
+      <div class="num"><b>{{ units }}</b></div>
+
+      <div class="muted">Unit price</div>
+      <div class="num">
+        {% if unit_price is not none %}
+          <b>{{ unit_price }}</b>
+          {% if px_asof %}<span class="muted"> ({{ px_asof }})</span>{% endif %}
+        {% else %}
+          <span class="muted">N/A</span>
+        {% endif %}
+      </div>
+
+      <div class="muted">Value</div>
+      <div class="num">
+        {% if value is not none %}
+          <b>{{ value }}</b>
+        {% else %}
+          <span class="muted">N/A</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 10px 0">Recent Cashflows</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Kind</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Requested</th>
+          <th>Confirmed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in flows %}
+          <tr>
+            <td class="num">{{ f.id }}</td>
+            <td>{{ f.kind }}</td>
+            <td class="num">{{ f.amount }} {{ f.currency }}</td>
+            <td>
+              {% if f.status == "CONFIRMED" %}
+                <span class="badge ok">CONFIRMED</span>
+              {% elif f.status == "PENDING" %}
+                <span class="badge warn">PENDING</span>
+              {% else %}
+                <span class="badge bad">{{ f.status }}</span>
+              {% endif %}
+            </td>
+            <td class="num">{{ f.requested_at }}</td>
+            <td class="num">
+              {% if f.confirmed_at %}{{ f.confirmed_at }}{% else %}-{% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="muted">No cashflows found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="muted" style="margin-top:10px;">
+      Withdrawal request UI will be added later. (Read-only portal for now.)
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>RPQ Admin</title>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif; background:#fafafa;}
+    .wrap{max-width:1100px; margin:28px auto; padding:0 18px;}
+    h1{margin:0 0 14px 0;}
+    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+    .card{border:1px solid #ddd; background:#fff; border-radius:12px; padding:14px;}
+    .k{color:#666; font-size:13px; margin-bottom:6px;}
+    .v{font-size:22px; font-weight:700;}
+    .muted{color:#666; font-size:13px;}
+    .row{display:flex; justify-content:space-between; gap:12px; margin-top:10px; flex-wrap:wrap;}
+    a.btn{display:inline-block; padding:10px 12px; border:1px solid #333; border-radius:10px; text-decoration:none; color:#111; background:#fff;}
+    a.btn.primary{background:#111; color:#fff;}
+    code{background:#f2f2f2; padding:2px 6px; border-radius:6px;}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    {% include "admin/_nav.html" %}
+
+    <h1>Admin Dashboard</h1>
+    <div class="muted">fund_id={{ fund_id }}</div>
+
+    <div class="grid" style="margin-top:12px;">
+      <div class="card">
+        <div class="k">Pending Cashflows</div>
+        <div class="v">{{ pending }}</div>
+        <div class="row">
+          <a class="btn primary" href="/admin/cashflows?status=PENDING">처리하러 가기</a>
+          <a class="btn" href="/admin/cashflows?status=CONFIRMED">확인(완료)</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="k">Latest Unit Price (NAV per unit)</div>
+        <div class="v">
+          {% if unit_price is not none %}
+            {{ "%.6f"|format(unit_price) }}
+          {% else %}
+            -
+          {% endif %}
+        </div>
+        <div class="muted">
+          {% if unit_price_asof %}asof {{ unit_price_asof }}{% endif %}
+          {% if unit_price_note %}<div>note: {{ unit_price_note }}</div>{% endif %}
+        </div>
+        <div class="row">
+          <a class="btn" href="/admin/unit-price?fund_id={{ fund_id }}">Unit Price 관리</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="k">Units Outstanding</div>
+        <div class="v">{{ total_units }}</div>
+        <div class="muted">
+          Investors: active {{ inv_active }} / total {{ inv_total }}
+        </div>
+        <div class="row">
+          <a class="btn" href="/admin/investors">Investors</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="k">Latest FX Snapshot (equity)</div>
+        <div class="v">
+          {% if snap_equity is not none %}
+            {{ "%.2f"|format(snap_equity) }}
+          {% else %}
+            -
+          {% endif %}
+        </div>
+        <div class="muted">
+          {% if snap_asof %}asof {{ snap_asof }}{% endif %}
+          {% if snap_fxid %}<div>fx_account_id={{ snap_fxid }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="k">Implied Unit Price (equity / total_units)</div>
+        <div class="v">
+          {% if implied_px is not none %}
+            {{ "%.6f"|format(implied_px) }}
+          {% else %}
+            -
+          {% endif %}
+        </div>
+        <div class="muted">
+          {% if total_units == 0 %}총 유닛이 0이면 계산 불가{% endif %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="k">Ops Notes</div>
+        <div class="muted">
+          - 입금/출금 신청은 <code>cashflow_requests</code><br>
+          - Confirm 시 <code>ledger_entries</code> 2줄(CASH/UNITS) 생성<br>
+          - 스냅샷이 들어오면 unit price가 자동 갱신될 수 있음
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -12,6 +12,7 @@
   <td>
     {% if inv.is_active %}
       <button
+        class="secondary"
         hx-delete="/admin/investors/{{ inv.id }}"
         hx-headers='{"X-Admin-Id":"1"}'
         hx-target="#inv-{{ inv.id }}"
@@ -25,8 +26,14 @@
         hx-swap="outerHTML"
         style="display:inline"
       >
-        <button type="submit">Restore</button>
+        <button type="submit" class="secondary">Restore</button>
       </form>
     {% endif %}
   </td>
+
+  <!-- username 표시 -->
+  <td>{{ inv.username or "" }}</td>
+
+  <!-- credentials 페이지 이동 -->
+  <td><a href="/admin/investors/{{ inv.id }}/credentials">Set / View</a></td>
 </tr>

@@ -1,0 +1,14 @@
+# --- core web ---
+fastapi
+uvicorn[standard]
+jinja2
+
+# --- db ---
+sqlalchemy
+psycopg2-binary
+
+# --- utils ---
+python-dotenv
+requests
+pydantic
+itsdangerous==2.2.0

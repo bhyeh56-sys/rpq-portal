@@ -1,0 +1,25 @@
+<nav class="admin-nav">
+  <div class="admin-nav__left">
+    <a class="brand" href="/admin">RPQ Admin</a>
+    <a class="link" href="/admin/investors">Investors</a>
+    <a class="link" href="/admin/cashflows?status=PENDING">Cashflows (Pending)</a>
+    <a class="link" href="/admin/cashflows?status=CONFIRMED">Cashflows (Confirmed)</a>
+    <a class="link" href="/admin/unit-price?fund_id=1">Unit Price</a>
+  </div>
+  <div class="admin-nav__right">
+    <a class="link" href="/portal/" target="_blank">Investor Portal</a>
+  </div>
+</nav>
+
+<style>
+  .admin-nav{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:14px; padding:12px 14px; border:1px solid #ddd; border-radius:12px;
+    background:#fff; margin: 0 0 16px 0;
+  }
+  .admin-nav__left, .admin-nav__right{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .admin-nav a{color:#0b57d0; text-decoration:none;}
+  .admin-nav a:hover{text-decoration:underline;}
+  .admin-nav .brand{font-weight:700; color:#111; text-decoration:none; margin-right:6px;}
+  .admin-nav .brand:hover{text-decoration:none;}
+</style>

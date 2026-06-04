@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Investor Login</title>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif; max-width:520px; margin:60px auto; padding:0 12px;}
+    .card{border:1px solid #ddd; border-radius:10px; padding:16px;}
+    .row{display:flex; gap:10px; margin:10px 0;}
+    input{flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;}
+    button{padding:10px 14px; border:1px solid #333; border-radius:8px; background:#111; color:#fff; cursor:pointer;}
+    .muted{color:#666; font-size:13px;}
+    .err{color:#b00020; font-size:13px; margin:8px 0;}
+  </style>
+</head>
+<body>
+  <h2>Investor Portal</h2>
+
+  <div class="card">
+    {% if msg == "bad" %}
+      <div class="err">Invalid username or password.</div>
+    {% elif msg == "missing" %}
+      <div class="err">Please enter username and password.</div>
+    {% elif msg == "bye" %}
+      <div class="muted">Logged out.</div>
+    {% endif %}
+
+    <form method="post" action="/portal/login">
+      <div class="row">
+        <input name="username" placeholder="Username" autocomplete="username" required>
+      </div>
+      <div class="row">
+        <input name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+      </div>
+      <div class="row">
+        <button type="submit">Login</button>
+      </div>
+      <div class="muted">If you don’t have credentials, contact admin.</div>
+    </form>
+  </div>
+</body>
+</html>
