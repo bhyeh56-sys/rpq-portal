@@ -28,9 +28,9 @@ def _require_login(request: Request) -> int:
 def login_page(request: Request, msg: str = ""):
     return templates.TemplateResponse("portal/login.html", {"request": request, "msg": msg})
 
-@router.head("/login")
+@router.head("/login", response_class=HTMLResponse)
 def login_head():
-    return
+    return HTMLResponse(content="")
 
 @router.post("/login")
 def login_post(
