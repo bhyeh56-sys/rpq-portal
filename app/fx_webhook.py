@@ -2,7 +2,7 @@
 import json
 import hmac
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -24,15 +24,13 @@ def _parse_dt(s: str) -> datetime:
     return datetime.fromisoformat(s)
 
 
-def _bucket_asof_hour05(dt: datetime) -> datetime:
+def _bucket_asof_5min(dt: datetime) -> datetime:
     """
-    Bucket time to HH:05:00 of the same hour.
-    If dt is earlier than HH:05 (e.g. HH:03), bucket to previous hour's :05.
+    Floor time to the nearest 5-minute boundary.
+    Example: 12:29:13 -> 12:25:00.
     """
-    b = dt.replace(minute=5, second=0, microsecond=0)
-    if dt.minute < 5:
-        b = b - timedelta(hours=1)
-    return b
+    bucket_minute = (dt.minute // 5) * 5
+    return dt.replace(minute=bucket_minute, second=0, microsecond=0)
 
 
 def _D(x) -> Decimal:
@@ -78,7 +76,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
 
     try:
         asof_at_raw = _parse_dt(payload.get("asof_at"))
-        asof_at = _bucket_asof_hour05(asof_at_raw)
+        asof_at = _bucket_asof_5min(asof_at_raw)
 
         balance = _D(payload.get("balance"))
         equity = _D(payload.get("equity"))
@@ -146,7 +144,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
                 "fid": fx.fund_id,
                 "asof": asof_at,
                 "px": unit_price,
-                "note": f"AUTO bucketed(HH:05) from FX snapshot fx_account_id={fx.id}",
+                "note": f"AUTO bucketed(5min floor) from FX snapshot fx_account_id={fx.id}",
             },
         )
         auto_created = True
