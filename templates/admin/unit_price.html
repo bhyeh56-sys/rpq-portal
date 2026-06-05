@@ -10,6 +10,9 @@
     table { border-collapse: collapse; margin-top: 12px; }
     th, td { border: 1px solid #ddd; padding: 8px 10px; }
     .muted { color:#666; }
+    .notice { background:#fff8e1; border:1px solid #f0d37a; color:#5f4700; padding:8px 10px; border-radius:8px; margin:8px 0 12px; max-width:720px; }
+    .help { color:#666; font-size:13px; }
+    button { padding:8px 12px; border:1px solid #333; border-radius:8px; background:#111; color:#fff; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -40,17 +43,37 @@
   {% endif %}
 
   <h3>Add / Update</h3>
+  <div class="notice">
+    저장 전 기준일의 timezone 포함 여부와 양수 price 값을 확인하세요. 이 입력 제약은 실수 방지용이며 서버 검증은 그대로 유지됩니다.
+  </div>
   <form method="post" action="/admin/unit-price">
     <input type="hidden" name="fund_id" value="{{ fund_id }}"/>
 
     <div class="row">
       <label>asof_at</label>
-      <input name="asof_at" placeholder="2026-01-26T17:45:00+09:00" style="width: 320px;" required>
+      <input
+        name="asof_at"
+        placeholder="2026-01-26T17:45:00+09:00"
+        style="width: 320px;"
+        autocomplete="off"
+        required
+      >
+      <span class="help">Timezone required, e.g. +09:00</span>
     </div>
 
     <div class="row">
       <label>price</label>
-      <input name="price" placeholder="1.000000" style="width: 180px;" required>
+      <input
+        name="price"
+        type="number"
+        placeholder="1.000000"
+        style="width: 180px;"
+        min="0.0000000001"
+        step="0.000001"
+        inputmode="decimal"
+        required
+      >
+      <span class="help">Positive value only</span>
     </div>
 
     <div class="row">
@@ -59,7 +82,7 @@
     </div>
 
     <div class="row">
-      <button type="submit">Save</button>
+      <button type="submit">Save unit price</button>
       <span class="muted">Tip: curl은 +09:00의 +가 공백이 되니 --data-urlencode 사용</span>
     </div>
   </form>
