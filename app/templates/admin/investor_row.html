@@ -16,14 +16,12 @@
     {% if inv.is_active %}
       <button
         hx-delete="/admin/investors/{{ inv.id }}"
-        hx-headers='{"X-Admin-Id":"1"}'
         hx-target="#inv-{{ inv.id }}"
         hx-swap="outerHTML"
       >Deactivate</button>
     {% else %}
       <button
         hx-post="/admin/investors/{{ inv.id }}/restore"
-        hx-headers='{"X-Admin-Id":"1"}'
         hx-target="#inv-{{ inv.id }}"
         hx-swap="outerHTML"
       >Restore</button>

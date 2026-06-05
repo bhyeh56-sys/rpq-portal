@@ -14,14 +14,12 @@
       <button
         class="secondary"
         hx-delete="/admin/investors/{{ inv.id }}"
-        hx-headers='{"X-Admin-Id":"1"}'
         hx-target="#inv-{{ inv.id }}"
         hx-swap="outerHTML"
       >Deactivate</button>
     {% else %}
       <form
         hx-post="/admin/investors/{{ inv.id }}/restore"
-        hx-headers='{"X-Admin-Id":"1"}'
         hx-target="#inv-{{ inv.id }}"
         hx-swap="outerHTML"
         style="display:inline"
