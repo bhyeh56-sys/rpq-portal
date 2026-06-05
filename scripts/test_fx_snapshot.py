@@ -65,8 +65,17 @@ def main() -> int:
     }
     body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     signature = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
+    body_sha256 = hashlib.sha256(body).hexdigest()
+
+    # Match app.fx_webhook._verify_sig: HMAC-SHA256(secret, raw body bytes).
+    verify_signature = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(verify_signature, signature):
+        print("Internal signing self-check failed.", file=sys.stderr)
+        return 1
 
     url = f"{args.base_url.rstrip('/')}/fx/mt5/snapshot"
+    print(f"Body SHA256: {body_sha256}")
+    print(f"Signature length: {len(signature)}")
     if not args.send:
         print("DRY RUN: snapshot was not sent.")
         print(f"Target: {url}")
@@ -81,6 +90,7 @@ def main() -> int:
         method="POST",
         headers={
             "Content-Type": "application/json",
+            "Content-Length": str(len(body)),
             "X-FX-Account-Id": fx_account_id,
             "X-Signature": signature,
         },
