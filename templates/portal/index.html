@@ -14,6 +14,9 @@
     .ok{border-color:#2e7d32; color:#2e7d32;}
     .warn{border-color:#b26a00; color:#b26a00;}
     .bad{border-color:#b00020; color:#b00020;}
+    .kind-deposit{color:#2e7d32; font-weight:700;}
+    .kind-withdraw{color:#b00020; font-weight:700;}
+    .value-note{margin-top:4px;}
     button{padding:8px 12px; border:1px solid #333; border-radius:8px; background:#111; color:#fff; cursor:pointer;}
     .right form{display:inline;}
     .kv{display:grid; grid-template-columns:160px 1fr; gap:6px 12px; margin-top:8px;}
@@ -40,24 +43,26 @@
 
     <div class="kv">
       <div class="muted">Units</div>
-      <div class="num"><b>{{ units }}</b></div>
+      <div class="num"><b>{{ "{:,.4f}".format(units) }}</b> units</div>
 
       <div class="muted">Unit price</div>
       <div class="num">
         {% if unit_price is not none %}
-          <b>{{ unit_price }}</b>
-          {% if px_asof %}<span class="muted"> ({{ px_asof }})</span>{% endif %}
+          <b>USD {{ "{:,.6f}".format(unit_price) }}</b>
+          {% if px_asof %}
+            <div class="muted value-note">As of {{ px_asof.strftime('%Y-%m-%d %H:%M') }}</div>
+          {% endif %}
         {% else %}
-          <span class="muted">N/A</span>
+          <span class="muted">기준가 미등록</span>
         {% endif %}
       </div>
 
       <div class="muted">Value</div>
       <div class="num">
         {% if value is not none %}
-          <b>{{ value }}</b>
+          <b>USD {{ "{:,.2f}".format(value) }}</b>
         {% else %}
-          <span class="muted">N/A</span>
+          <span class="muted">기준가 미등록으로 평가금액 계산 불가</span>
         {% endif %}
       </div>
     </div>
@@ -81,8 +86,12 @@
         {% for f in flows %}
           <tr>
             <td class="num">{{ f.id }}</td>
-            <td>{{ f.kind }}</td>
-            <td class="num">{{ f.amount }} {{ f.currency }}</td>
+            <td>
+              <span class="{% if f.kind == 'WITHDRAW' %}kind-withdraw{% else %}kind-deposit{% endif %}">
+                {{ f.kind }}
+              </span>
+            </td>
+            <td class="num">{{ f.currency }} {{ "{:,.2f}".format(f.amount) }}</td>
             <td>
               {% if f.status == "CONFIRMED" %}
                 <span class="badge ok">CONFIRMED</span>
@@ -92,9 +101,11 @@
                 <span class="badge bad">{{ f.status }}</span>
               {% endif %}
             </td>
-            <td class="num">{{ f.requested_at }}</td>
             <td class="num">
-              {% if f.confirmed_at %}{{ f.confirmed_at }}{% else %}-{% endif %}
+              {% if f.requested_at %}{{ f.requested_at.strftime('%Y-%m-%d %H:%M') }}{% else %}-{% endif %}
+            </td>
+            <td class="num">
+              {% if f.confirmed_at %}{{ f.confirmed_at.strftime('%Y-%m-%d %H:%M') }}{% else %}-{% endif %}
             </td>
           </tr>
         {% else %}
