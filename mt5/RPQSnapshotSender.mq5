@@ -9,6 +9,7 @@ input string WebhookUrl = "https://rpqtfund.com/fx/mt5/snapshot";
 input long   FxAccountId = 0;
 input string FxSecret = "";
 input int    SendIntervalSeconds = 300;
+input bool   DebugMode = false;
 
 datetime g_last_send = 0;
 
@@ -207,10 +208,31 @@ void HmacSha256(const uchar &key[], const uchar &body[], uchar &digest[])
 
 string BytesToHex(const uchar &data[])
 {
+   string hex = "0123456789abcdef";
    string out = "";
    for(int i = 0; i < ArraySize(data); i++)
-      out += StringFormat("%02x", data[i]);
+   {
+      int high = (data[i] >> 4) & 0x0f;
+      int low = data[i] & 0x0f;
+      out += StringSubstr(hex, high, 1) + StringSubstr(hex, low, 1);
+   }
    return out;
+}
+
+bool IsLowercaseHex64(const string value)
+{
+   if(StringLen(value) != 64)
+      return false;
+
+   for(int i = 0; i < 64; i++)
+   {
+      ushort ch = StringGetCharacter(value, i);
+      bool is_digit = (ch >= '0' && ch <= '9');
+      bool is_lower_hex = (ch >= 'a' && ch <= 'f');
+      if(!is_digit && !is_lower_hex)
+         return false;
+   }
+   return true;
 }
 
 string IsoTimeUtc()
@@ -264,10 +286,19 @@ bool SendSnapshot()
    HmacSha256(secret_bytes, body_bytes, sig_bytes);
    string signature = BytesToHex(sig_bytes);
 
+   if(!IsLowercaseHex64(signature))
+   {
+      PrintFormat("RPQ snapshot signing failed: signature_len=%d signature_is_lowercase_hex=false", StringLen(signature));
+      return false;
+   }
+
    uchar body_hash[];
    Sha256(body_bytes, body_hash);
-   PrintFormat("RPQ snapshot signing: body_sha256=%s signature_len=%d body_len=%d",
-               BytesToHex(body_hash), StringLen(signature), ArraySize(body_bytes));
+   if(DebugMode)
+   {
+      PrintFormat("RPQ debug: body_len=%d body_sha256=%s signature_len=%d signature_is_lowercase_hex=true",
+                  ArraySize(body_bytes), BytesToHex(body_hash), StringLen(signature));
+   }
 
    char post[];
    UcharBytesToCharBytes(body_bytes, post);

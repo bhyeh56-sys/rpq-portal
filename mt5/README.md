@@ -20,6 +20,7 @@ https://rpqtfund.com/fx/mt5/snapshot
 - `FxAccountId`: the server-side `fx_accounts.id`
 - `FxSecret`: the server-side secret for that FX account
 - `SendIntervalSeconds`: send interval in seconds
+- `DebugMode`: when `true`, prints signing diagnostics without printing the secret or body
 
 Do not paste `FxSecret` into logs, screenshots, or shared config exports.
 
@@ -51,4 +52,4 @@ It signs the exact UTF-8 request body bytes with HMAC-SHA256 and sends:
 - `X-Signature`
 - `Content-Type: application/json`
 
-The Experts log prints the body SHA256, signature length, and body length for diagnostics, but never prints `FxSecret` or the raw request body.
+When `DebugMode=true`, the Experts log prints only body length, body SHA256, signature length, and whether the signature is lowercase hex. It never prints `FxSecret` or the raw request body.
