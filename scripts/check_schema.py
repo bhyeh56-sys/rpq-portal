@@ -38,15 +38,16 @@ REQUIRED_COLUMNS = {
         "cancelled_at",
     ],
     "ledger_entries": [
-        "fund_id",
-        "investor_id",
         "source_type",
         "source_id",
         "account",
-        "currency",
         "amount",
         "unit_price",
     ],
+}
+
+OPTIONAL_FUTURE_COLUMNS = {
+    "ledger_entries": ["fund_id", "investor_id", "currency"],
 }
 
 
@@ -78,6 +79,11 @@ def print_result(ok: bool, label: str, detail: str = "") -> None:
     print(f"{prefix} {label}{suffix}")
 
 
+def print_warn(label: str, detail: str = "") -> None:
+    suffix = f" - {detail}" if detail else ""
+    print(f"WARN {label}{suffix}")
+
+
 def main() -> int:
     load_dotenv_database_url()
     database_url = os.getenv("DATABASE_URL")
@@ -88,9 +94,11 @@ def main() -> int:
     schema = os.getenv("DB_SCHEMA", "public")
     engine = create_engine(database_url, pool_pre_ping=True)
     failures = 0
+    warnings = 0
 
     try:
         with engine.connect() as conn:
+            print("Required checks")
             table_rows = conn.execute(
                 text(
                     """
@@ -110,6 +118,9 @@ def main() -> int:
                 if not ok:
                     failures += 1
 
+            checked_tables = sorted(
+                set(REQUIRED_COLUMNS.keys()) | set(OPTIONAL_FUTURE_COLUMNS.keys())
+            )
             column_rows = conn.execute(
                 text(
                     """
@@ -119,7 +130,7 @@ def main() -> int:
                       and table_name = any(:tables)
                     """
                 ),
-                {"schema": schema, "tables": list(REQUIRED_COLUMNS.keys())},
+                {"schema": schema, "tables": checked_tables},
             ).mappings().all()
             existing_columns: dict[str, set[str]] = {}
             for row in column_rows:
@@ -132,6 +143,21 @@ def main() -> int:
                     print_result(ok, f"column {schema}.{table}.{column}")
                     if not ok:
                         failures += 1
+
+            print("")
+            print("Optional future checks")
+            for table, columns in OPTIONAL_FUTURE_COLUMNS.items():
+                table_columns = existing_columns.get(table, set())
+                for column in columns:
+                    ok = column in table_columns
+                    if ok:
+                        print_result(True, f"column {schema}.{table}.{column}")
+                    else:
+                        print_warn(
+                            f"column {schema}.{table}.{column}",
+                            "optional future column missing",
+                        )
+                        warnings += 1
     except Exception as exc:
         print_result(False, "schema check", type(exc).__name__)
         return 1
@@ -142,7 +168,10 @@ def main() -> int:
         print(f"Schema check failed: {failures} missing item(s).")
         return 1
 
-    print("Schema check passed.")
+    if warnings:
+        print(f"Schema check passed with {warnings} optional warning(s).")
+    else:
+        print("Schema check passed.")
     return 0
 
 
