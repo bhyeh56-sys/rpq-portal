@@ -10,8 +10,18 @@
     table { border-collapse: collapse; margin-top: 12px; width: 100%; }
     th, td { border: 1px solid #ddd; padding: 8px 10px; }
     .muted { color:#666; }
-    .btn { padding: 6px 10px; cursor:pointer; }
+    .notice { background:#fff8e1; border:1px solid #f0d37a; color:#5f4700; padding:8px 10px; border-radius:8px; margin:8px 0 12px; }
+    .btn { padding: 6px 10px; border:1px solid #444; border-radius:6px; cursor:pointer; background:#fff; color:#111; }
+    .btn-confirm { background:#0b6b2b; border-color:#0b6b2b; color:#fff; }
+    .btn-cancel { background:#fff; border-color:#b00020; color:#b00020; }
+    .btn-create { background:#111; border-color:#111; color:#fff; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ccc; border-radius: 999px; }
+    .status-pending { background:#fff3cd; border-color:#d6a300; color:#5f4700; }
+    .status-confirmed { background:#e6f4ea; border-color:#0b6b2b; color:#0b6b2b; }
+    .status-cancelled { background:#f8d7da; border-color:#b00020; color:#b00020; }
+    tr.pending-row { background:#fffdf3; }
+    .kind-withdraw { color:#b00020; font-weight:700; }
+    .kind-deposit { color:#0b6b2b; font-weight:700; }
   </style>
 </head>
 <body>
@@ -25,6 +35,9 @@
   </div>
 
   <h3>Create request</h3>
+  <div class="notice">
+    생성 전 투자자, 입출금 종류, 금액을 다시 확인하세요. 생성된 요청은 PENDING으로 등록됩니다.
+  </div>
   <form method="post" action="/admin/cashflows">
     <div class="row">
       <label>Fund</label>
@@ -55,7 +68,7 @@
 
       <label>Note</label>
       <input name="note" placeholder="optional" style="width:220px;">
-      <button class="btn" type="submit">Create</button>
+      <button class="btn btn-create" type="submit">Create PENDING request</button>
     </div>
   </form>
 
@@ -68,21 +81,37 @@
     </thead>
     <tbody>
       {% for f in flows %}
-        <tr>
+        <tr class="{% if f.status == 'PENDING' %}pending-row{% endif %}">
           <td>{{ f.id }}</td>
           <td>#{{ f.fund_id }} {{ fund_map[f.fund_id].name if f.fund_id in fund_map else '' }}</td>
           <td>#{{ f.investor_id }} {{ inv_map[f.investor_id].name if f.investor_id in inv_map else '' }}</td>
-          <td>{{ f.kind }}</td>
+          <td>
+            <span class="{% if f.kind == 'WITHDRAW' %}kind-withdraw{% else %}kind-deposit{% endif %}">
+              {{ f.kind }}
+            </span>
+          </td>
           <td>{{ f.amount }} {{ f.currency }}</td>
-          <td>{{ f.status }}</td>
+          <td>
+            <span class="pill {% if f.status == 'PENDING' %}status-pending{% elif f.status == 'CONFIRMED' %}status-confirmed{% elif f.status == 'CANCELLED' %}status-cancelled{% endif %}">
+              {{ f.status }}
+            </span>
+          </td>
           <td>{{ f.requested_at }}</td>
           <td>
             {% if f.status == 'PENDING' %}
               <form style="display:inline;" method="post" action="/admin/cashflows/{{ f.id }}/confirm">
-                <button class="btn" type="submit">Confirm</button>
+                <button
+                  class="btn btn-confirm"
+                  type="submit"
+                  onclick="return confirm('Confirm this pending cashflow? Review the investor, kind, and amount in this row before continuing.');"
+                >Confirm and post</button>
               </form>
               <form style="display:inline;" method="post" action="/admin/cashflows/{{ f.id }}/cancel">
-                <button class="btn" type="submit">Cancel</button>
+                <button
+                  class="btn btn-cancel"
+                  type="submit"
+                  onclick="return confirm('Cancel this pending cashflow request? Review the investor, kind, and amount in this row before continuing.');"
+                >Cancel request</button>
               </form>
             {% else %}
               <span class="muted">-</span>
