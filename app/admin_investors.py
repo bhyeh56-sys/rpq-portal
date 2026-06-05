@@ -269,7 +269,14 @@ def credentials_save(
     )
 
     db.commit()
-    return RedirectResponse(
-        url=f"/admin/investors/{inv.id}/credentials?msg=ok",
-        status_code=303,
+    db.refresh(inv)
+    return request.app.state.templates.TemplateResponse(
+        "admin/credentials.html",
+        {
+            "request": request,
+            "inv": inv,
+            "msg": "ok",
+            "saved_username": username,
+            "temp_password": password,
+        },
     )
