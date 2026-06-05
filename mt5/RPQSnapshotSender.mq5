@@ -12,6 +12,7 @@ input int    SendIntervalSeconds = 300;
 input bool   DebugMode = false;
 
 datetime g_last_send = 0;
+bool g_hmac_selftest_ok = true;
 
 uint K[64] =
 {
@@ -235,6 +236,20 @@ bool IsLowercaseHex64(const string value)
    return true;
 }
 
+bool HmacSelfTest()
+{
+   uchar key_bytes[];
+   uchar body_bytes[];
+   uchar sig_bytes[];
+   StringToUtf8Bytes("key", key_bytes);
+   StringToUtf8Bytes("The quick brown fox jumps over the lazy dog", body_bytes);
+   HmacSha256(key_bytes, body_bytes, sig_bytes);
+
+   string actual = BytesToHex(sig_bytes);
+   string expected = "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8";
+   return (actual == expected && IsLowercaseHex64(actual));
+}
+
 string IsoTimeUtc()
 {
    MqlDateTime dt;
@@ -265,6 +280,12 @@ string BuildPayload()
 
 bool SendSnapshot()
 {
+   if(!g_hmac_selftest_ok)
+   {
+      Print("HMAC self-test failed; snapshot send skipped.");
+      return false;
+   }
+
    if(FxAccountId <= 0)
    {
       Print("RPQ snapshot send skipped: FxAccountId must be set.");
@@ -338,6 +359,18 @@ int OnInit()
    EventSetTimer(interval);
    PrintFormat("RPQSnapshotSender started. interval=%d seconds url=%s fx_account_id=%s",
                interval, WebhookUrl, IntegerToString(FxAccountId));
+
+   if(DebugMode)
+   {
+      g_hmac_selftest_ok = HmacSelfTest();
+      PrintFormat("RPQ debug: hmac_selftest=%s", g_hmac_selftest_ok ? "true" : "false");
+      if(!g_hmac_selftest_ok)
+      {
+         Print("HMAC self-test failed; snapshot send disabled.");
+         return INIT_SUCCEEDED;
+      }
+   }
+
    if(SendSnapshot())
       g_last_send = TimeCurrent();
    return INIT_SUCCEEDED;
