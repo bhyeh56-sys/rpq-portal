@@ -51,4 +51,4 @@ It signs the exact UTF-8 request body bytes with HMAC-SHA256 and sends:
 - `X-Signature`
 - `Content-Type: application/json`
 
-The Experts log prints the body SHA256 and signature length for diagnostics, but never prints `FxSecret`.
+The Experts log prints the body SHA256, signature length, and body length for diagnostics, but never prints `FxSecret` or the raw request body.

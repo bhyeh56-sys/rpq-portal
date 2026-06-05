@@ -62,13 +62,23 @@ uint SmallSigma1(const uint x)
 void StringToUtf8Bytes(const string value, uchar &out[])
 {
    char tmp[];
-   int len = StringToCharArray(value, tmp, 0, StringLen(value), CP_UTF8);
+   int len = StringToCharArray(value, tmp, 0, -1, CP_UTF8);
    if(len < 0)
       len = 0;
+   if(len > 0 && tmp[len - 1] == 0)
+      len--;
 
    ArrayResize(out, len);
    for(int i = 0; i < len; i++)
       out[i] = (uchar)tmp[i];
+}
+
+void UcharBytesToCharBytes(const uchar &src[], char &dst[])
+{
+   int len = ArraySize(src);
+   ArrayResize(dst, len);
+   for(int i = 0; i < len; i++)
+      dst[i] = (char)src[i];
 }
 
 void Sha256(const uchar &data[], uchar &digest[])
@@ -256,13 +266,11 @@ bool SendSnapshot()
 
    uchar body_hash[];
    Sha256(body_bytes, body_hash);
-   PrintFormat("RPQ snapshot signing: body_sha256=%s signature_len=%d", BytesToHex(body_hash), StringLen(signature));
+   PrintFormat("RPQ snapshot signing: body_sha256=%s signature_len=%d body_len=%d",
+               BytesToHex(body_hash), StringLen(signature), ArraySize(body_bytes));
 
    char post[];
-   int post_len = StringToCharArray(body, post, 0, StringLen(body), CP_UTF8);
-   if(post_len < 0)
-      post_len = 0;
-   ArrayResize(post, post_len);
+   UcharBytesToCharBytes(body_bytes, post);
 
    char result[];
    string result_headers = "";
