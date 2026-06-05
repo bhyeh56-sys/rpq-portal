@@ -8,15 +8,26 @@
     .wrap{max-width:1100px; margin:28px auto; padding:0 18px;}
     h1{margin:0 0 14px 0;}
     .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
-    .card{border:1px solid #ddd; background:#fff; border-radius:12px; padding:14px;}
+    .card{border:1px solid #ddd; background:#fff; border-radius:8px; padding:14px;}
+    .wide{grid-column:span 2;}
     .k{color:#666; font-size:13px; margin-bottom:6px;}
-    .v{font-size:22px; font-weight:700;}
+    .v{font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;}
     .muted{color:#666; font-size:13px;}
     .row{display:flex; justify-content:space-between; gap:12px; margin-top:10px; flex-wrap:wrap;}
-    a.btn{display:inline-block; padding:10px 12px; border:1px solid #333; border-radius:10px; text-decoration:none; color:#111; background:#fff;}
+    .metric{display:grid; grid-template-columns:120px 1fr; gap:6px 10px; margin-top:8px; font-size:14px;}
+    .metric div:nth-child(odd){color:#666;}
+    .num{font-variant-numeric:tabular-nums;}
+    .status{display:inline-block; padding:3px 9px; border-radius:999px; border:1px solid #ccc; font-size:13px; font-weight:700;}
+    .status.ok{border-color:#2e7d32; color:#2e7d32; background:#e6f4ea;}
+    .status.warn{border-color:#b26a00; color:#8a5200; background:#fff3cd;}
+    .status.nodata{border-color:#aaa; color:#666; background:#f4f4f4;}
+    table{width:100%; border-collapse:collapse; margin-top:8px;}
+    th,td{border-bottom:1px solid #eee; padding:8px; text-align:left;}
+    th{color:#666; font-size:13px; font-weight:600;}
+    a.btn{display:inline-block; padding:10px 12px; border:1px solid #333; border-radius:8px; text-decoration:none; color:#111; background:#fff;}
     a.btn.primary{background:#111; color:#fff;}
     code{background:#f2f2f2; padding:2px 6px; border-radius:6px;}
-    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} .wide{grid-column:auto;} }
   </style>
 </head>
 <body>
@@ -29,78 +40,114 @@
 
     <div class="grid" style="margin-top:12px;">
       <div class="card">
-        <div class="k">Pending Cashflows</div>
-        <div class="v">{{ pending }}</div>
-        <div class="row">
-          <a class="btn primary" href="/admin/cashflows?status=PENDING">처리하러 가기</a>
-          <a class="btn" href="/admin/cashflows?status=CONFIRMED">확인(완료)</a>
+        <div class="k">NAV Status</div>
+        <div class="v">
+          <span class="status {{ nav_status.level }}">{{ nav_status.status }}</span>
+        </div>
+        <div class="muted" style="margin-top:8px;">{{ nav_status.detail }}</div>
+        <div class="metric">
+          <div>Snapshot age</div>
+          <div>{{ snap_age.age }}</div>
+          <div>Unit price age</div>
+          <div>{{ unit_price_age.age }}</div>
         </div>
       </div>
 
       <div class="card">
-        <div class="k">Latest Unit Price (NAV per unit)</div>
+        <div class="k">Latest FX Snapshot</div>
         <div class="v">
-          {% if unit_price is not none %}
-            {{ "%.6f"|format(unit_price) }}
+          {% if snap_equity is not none %}
+            {{ "{:,.2f}".format(snap_equity) }}
           {% else %}
-            -
+            No data
           {% endif %}
         </div>
-        <div class="muted">
-          {% if unit_price_asof %}asof {{ unit_price_asof }}{% endif %}
-          {% if unit_price_note %}<div>note: {{ unit_price_note }}</div>{% endif %}
+        <div class="metric">
+          <div>fx_account_id</div>
+          <div>{% if snap_fxid %}{{ snap_fxid }}{% else %}Not available{% endif %}</div>
+          <div>asof_at</div>
+          <div>{% if snap_asof %}{{ snap_asof.strftime('%Y-%m-%d %H:%M') }}{% else %}Not available{% endif %}</div>
+          <div>balance</div>
+          <div class="num">{% if snap_balance is not none %}{{ "{:,.2f}".format(snap_balance) }}{% else %}No data{% endif %}</div>
+          <div>equity</div>
+          <div class="num">{% if snap_equity is not none %}{{ "{:,.2f}".format(snap_equity) }}{% else %}No data{% endif %}</div>
+          <div>profit</div>
+          <div class="num">{% if snap_profit is not none %}{{ "{:,.2f}".format(snap_profit) }}{% else %}No data{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="k">Latest Unit Price</div>
+        <div class="v">
+          {% if unit_price is not none %}
+            {{ "{:,.6f}".format(unit_price) }}
+          {% else %}
+            No data
+          {% endif %}
+        </div>
+        <div class="metric">
+          <div>fund_id</div>
+          <div>{{ unit_price_fund_id }}</div>
+          <div>asof_at</div>
+          <div>{% if unit_price_asof %}{{ unit_price_asof.strftime('%Y-%m-%d %H:%M') }}{% else %}Not available{% endif %}</div>
+          <div>price</div>
+          <div class="num">{% if unit_price is not none %}{{ "{:,.6f}".format(unit_price) }}{% else %}No data{% endif %}</div>
         </div>
         <div class="row">
           <a class="btn" href="/admin/unit-price?fund_id={{ fund_id }}">Unit Price 관리</a>
         </div>
       </div>
 
-      <div class="card">
-        <div class="k">Units Outstanding</div>
-        <div class="v">{{ total_units }}</div>
-        <div class="muted">
-          Investors: active {{ inv_active }} / total {{ inv_total }}
-        </div>
-        <div class="row">
-          <a class="btn" href="/admin/investors">Investors</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="k">Latest FX Snapshot (equity)</div>
+      <div class="card wide">
+        <div class="k">Total Units by Fund</div>
         <div class="v">
-          {% if snap_equity is not none %}
-            {{ "%.2f"|format(snap_equity) }}
-          {% else %}
-            -
-          {% endif %}
+          {{ "{:,.4f}".format(total_units) }}
         </div>
-        <div class="muted">
-          {% if snap_asof %}asof {{ snap_asof }}{% endif %}
-          {% if snap_fxid %}<div>fx_account_id={{ snap_fxid }}</div>{% endif %}
-        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Fund</th>
+              <th>Name</th>
+              <th>Total units</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in units_by_fund %}
+              <tr>
+                <td>#{{ row.fund_id }}</td>
+                <td>{{ row.fund_name }}</td>
+                <td class="num">{{ "{:,.4f}".format(row.total_units) }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="3" class="muted">No data</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
       <div class="card">
-        <div class="k">Implied Unit Price (equity / total_units)</div>
+        <div class="k">Implied NAV per Unit</div>
         <div class="v">
           {% if implied_px is not none %}
-            {{ "%.6f"|format(implied_px) }}
+            {{ "{:,.6f}".format(implied_px) }}
           {% else %}
-            -
+            Not available
           {% endif %}
         </div>
         <div class="muted">
-          {% if total_units == 0 %}총 유닛이 0이면 계산 불가{% endif %}
+          equity / total_units{% if total_units == 0 %}; 총 유닛이 0이면 계산 불가{% endif %}
         </div>
       </div>
 
       <div class="card">
-        <div class="k">Ops Notes</div>
-        <div class="muted">
-          - 입금/출금 신청은 <code>cashflow_requests</code><br>
-          - Confirm 시 <code>ledger_entries</code> 2줄(CASH/UNITS) 생성<br>
-          - 스냅샷이 들어오면 unit price가 자동 갱신될 수 있음
+        <div class="k">Operations</div>
+        <div class="v">{{ pending }}</div>
+        <div class="muted">Pending cashflows · Investors active {{ inv_active }} / total {{ inv_total }}</div>
+        <div class="row">
+          <a class="btn primary" href="/admin/cashflows?status=PENDING">처리하러 가기</a>
+          <a class="btn" href="/admin/investors">Investors</a>
         </div>
       </div>
     </div>
