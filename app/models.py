@@ -34,6 +34,8 @@ class Investor(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     memo = Column(Text)
+    username = Column(Text)
+    password_hash = Column(Text)
 
     is_active = Column(Boolean, nullable=False, default=True)
 
