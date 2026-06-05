@@ -18,11 +18,11 @@
 
   <div class="card">
     {% if msg == "bad" %}
-      <div class="err">Invalid username or password.</div>
+      <div class="err">Login failed. Check your username and password.</div>
     {% elif msg == "missing" %}
-      <div class="err">Please enter username and password.</div>
+      <div class="err">Please enter both username and password.</div>
     {% elif msg == "bye" %}
-      <div class="muted">Logged out.</div>
+      <div class="muted">You have been logged out.</div>
     {% endif %}
 
     <form method="post" action="/portal/login">

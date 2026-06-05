@@ -35,8 +35,8 @@ def login_head():
 @router.post("/login")
 def login_post(
     request: Request,
-    username: str = Form(...),
-    password: str = Form(...),
+    username: str = Form(""),
+    password: str = Form(""),
     db: Session = Depends(get_db),
 ):
     username = (username or "").strip()
