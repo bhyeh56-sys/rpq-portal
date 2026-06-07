@@ -147,6 +147,7 @@ if [[ -n "$LOCAL_APP_URL" ]]; then
       "${LOCAL_APP_URL}/portal/login")
     login_status=$?
     login_location="$(grep -i '^location:' "$header_file" | head -n 1 | sed -E 's/^[Ll]ocation:[[:space:]]*//; s/\r$//')"
+    login_set_cookie="$(grep -i '^set-cookie:' "$header_file" | tr -d '\r' | paste -sd ' ' -)"
     if [[ $login_status -eq 0 && "$login_code" == "303" && "$login_location" == "/portal/" ]]; then
       printf 'OK   local portal login POST -> %s\n' "$login_code"
       session_cookie="$(grep -i '^set-cookie:' "$header_file" | grep -i 'session=' | head -n 1 | sed -E 's/\r$//; s/.*[Ss][Ee][Ss][Ss][Ii][Oo][Nn]=([^;]+).*/session=\1/')"
@@ -159,10 +160,12 @@ if [[ -n "$LOCAL_APP_URL" ]]; then
       else
         printf 'FAIL local portal login POST did not return a session cookie.\n'
         printf 'Observed login redirect location: %s\n' "${login_location:-<none>}"
+        printf 'Observed Set-Cookie: %s\n' "${login_set_cookie:-<none>}"
         failures=$((failures + 1))
       fi
     else
       printf 'FAIL local portal login POST -> %s location=%s (expected 303 location=/portal/, curl exit %s)\n' "$login_code" "${login_location:-<none>}" "$login_status"
+      printf 'Observed Set-Cookie: %s\n' "${login_set_cookie:-<none>}"
       failures=$((failures + 1))
     fi
     rm -f "$header_file"

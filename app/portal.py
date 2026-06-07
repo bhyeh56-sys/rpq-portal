@@ -26,6 +26,14 @@ def _require_login(request: Request) -> int:
     return int(investor_id)
 
 
+def _is_explicitly_inactive(value) -> bool:
+    if value is False:
+        return True
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"0", "false", "f", "no", "n"}
+
+
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, msg: str = ""):
     return templates.TemplateResponse(request, "portal/login.html", {"msg": msg})
@@ -59,11 +67,17 @@ def login_post(
         logger.exception("Failed to load investor during portal login")
         return RedirectResponse(url="/portal/login?msg=bad", status_code=303)
 
-    if (not inv) or (not inv.get("is_active")):
+    if (not inv) or _is_explicitly_inactive(inv.get("is_active")):
         return RedirectResponse(url="/portal/login?msg=bad", status_code=303)
 
-    ph = inv.get("password_hash") or ""
-    if (not ph) or (not argon2.verify(password, ph)):
+    ph = (inv.get("password_hash") or "").strip()
+    try:
+        password_ok = bool(ph) and argon2.verify(password, ph)
+    except Exception:
+        logger.exception("Failed to verify investor password hash")
+        password_ok = False
+
+    if not password_ok:
         return RedirectResponse(url="/portal/login?msg=bad", status_code=303)
 
     request.session["investor_id"] = int(inv["id"])
