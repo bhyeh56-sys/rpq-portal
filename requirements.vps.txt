@@ -12,3 +12,4 @@ python-dotenv
 requests
 pydantic
 itsdangerous==2.2.0
+passlib[argon2]==1.7.4

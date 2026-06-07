@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FAQ | RedPine Quant</title>
+  <style>
+    :root { --ink:#17201b; --muted:#5f6b63; --line:#d9e0da; --pine:#173f31; --soft:#f3f7f1; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:#fbfcfa; line-height:1.65; }
+    a { color:var(--pine); text-decoration:none; }
+    header { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:2; }
+    .nav { max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    .brand { font-weight:800; }
+    .links { display:flex; gap:16px; flex-wrap:wrap; font-size:15px; }
+    main { max-width:960px; margin:0 auto; padding:42px 20px 72px; }
+    h1 { font-size:clamp(34px,5vw,56px); line-height:1.06; margin:0 0 16px; letter-spacing:0; }
+    .lead { color:var(--muted); font-size:19px; margin:0 0 24px; }
+    .item { border:1px solid var(--line); border-radius:8px; background:#fff; padding:20px; margin:12px 0; }
+    h2 { font-size:19px; margin:0 0 8px; }
+    p { margin:0; color:var(--muted); }
+    footer { border-top:1px solid var(--line); padding:24px 20px; color:var(--muted); }
+    .foot { max-width:1120px; margin:0 auto; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } main { padding-top:28px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="/">RedPine Quant</a>
+      <div class="links">
+        <a href="/copy">GP Copy</a>
+        <a href="/risk">Risk</a>
+        <a href="/faq">FAQ</a>
+        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h1>FAQ</h1>
+    <p class="lead">Global Prime GP Copy와 RedPine Quant 공개 안내에 대한 자주 묻는 질문입니다.</p>
+
+    <section class="item">
+      <h2>1. RedPine Quant가 투자금을 직접 받는가?</h2>
+      <p>아니요. 투자자는 자금을 RedPine Quant에 송금하지 않습니다. 투자자는 본인 명의 Global Prime 계좌를 사용합니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>2. Global Prime 계좌는 누구 명의인가?</h2>
+      <p>Global Prime 계좌는 투자자 본인 명의입니다. 계좌 개설, 입출금, 카피 설정과 중단은 투자자가 직접 관리합니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>3. 원금 보호가 약속되는가?</h2>
+      <p>아니요. FX/CFD 거래는 레버리지로 인해 원금 손실 가능성이 큰 고위험 거래입니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>4. 손실이 발생할 수 있는가?</h2>
+      <p>예. 시장 급변, 레버리지, 슬리피지, 유동성 부족, 기술 장애 등으로 손실이 발생할 수 있습니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>5. 카피를 중단할 수 있는가?</h2>
+      <p>예. 카피 여부, 투자금 규모, 중단 여부는 투자자 본인이 결정합니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>6. 성과보수는 있는가?</h2>
+      <p>적용 여부와 조건은 브로커, 플랫폼, 전략 제공 조건에 따라 달라질 수 있습니다. 참여 전 최신 조건을 확인해야 합니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>7. 최소 투자금은 얼마인가?</h2>
+      <p>최소 금액은 브로커 계좌 조건과 카피 서비스 조건에 따라 달라질 수 있습니다. 본인의 위험 감수 수준에 맞춰 판단해야 합니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>8. 어떤 상품을 거래하는가?</h2>
+      <p>전략은 FX/CFD 상품을 대상으로 할 수 있습니다. 실제 거래 상품은 전략과 브로커 제공 조건에 따라 달라질 수 있습니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>9. EA나 서버에 문제가 생기면 어떻게 되는가?</h2>
+      <p>EA 오류, VPS/네트워크 장애, 브로커 장애가 발생하면 주문 지연, 누락, 예상과 다른 체결이 생길 수 있습니다.</p>
+    </section>
+
+    <section class="item">
+      <h2>10. 과거 성과는 어디서 확인할 수 있는가?</h2>
+      <p>
+        {% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}
+        {% if myfxbook_url and fxblue_url %} 또는 {% endif %}
+        {% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}
+        {% if not myfxbook_url and not fxblue_url %}현재 공개 성과 링크가 설정되어 있지 않습니다.{% endif %}
+        과거 성과는 미래 수익을 보장하지 않습니다.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot">
+      <span>© RedPine Quant</span>
+      <span><a href="/">Home</a> · <a href="/copy">GP Copy</a> · <a href="/risk">Risk</a></span>
+    </div>
+  </footer>
+</body>
+</html>

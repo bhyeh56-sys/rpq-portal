@@ -1,16 +1,13 @@
 # app/main.py
 import os
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import admin_dashboard
 from .admin_cashflows import router as admin_cashflows_router
 from .admin_investors import router as admin_investors_router
-from .db import get_db
 from .fx_webhook import router as fx_router
 from .portal import router as portal_router
 
@@ -39,23 +36,40 @@ def health():
     return {"ok": True}
 
 
-@app.get("/")
-def home(request: Request, fx_account_id: int = 1, db: Session = Depends(get_db)):
-    row = db.execute(
-        text(
-            """
-            select fx_account_id, asof_at, balance, equity, profit
-            from fx_account_snapshots
-            where fx_account_id = :fxid
-            order by asof_at desc
-            limit 1
-        """
-        ),
-        {"fxid": fx_account_id},
-    ).mappings().first()
+def public_context(request: Request) -> dict:
+    global_prime_copy_url = os.getenv("GLOBAL_PRIME_COPY_URL", "").strip()
+    myfxbook_url = os.getenv("MYFXBOOK_URL", "").strip()
+    fxblue_url = os.getenv("FXBLUE_URL", "").strip()
+    contact_email = os.getenv("CONTACT_EMAIL", "contact@redpinequant.com").strip()
 
-    snap = dict(row) if row else None
-    return templates.TemplateResponse("index.html", {"request": request, "snap": snap})
+    return {
+        "request": request,
+        "global_prime_copy_url": global_prime_copy_url,
+        "copy_link_configured": bool(global_prime_copy_url),
+        "myfxbook_url": myfxbook_url or None,
+        "fxblue_url": fxblue_url or None,
+        "contact_email": contact_email or "contact@redpinequant.com",
+    }
+
+
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse("index.html", public_context(request))
+
+
+@app.get("/copy")
+def copy_page(request: Request):
+    return templates.TemplateResponse("copy.html", public_context(request))
+
+
+@app.get("/risk")
+def risk_page(request: Request):
+    return templates.TemplateResponse("risk.html", public_context(request))
+
+
+@app.get("/faq")
+def faq_page(request: Request):
+    return templates.TemplateResponse("faq.html", public_context(request))
 
 
 @app.head("/")

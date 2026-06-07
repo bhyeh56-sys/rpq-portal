@@ -31,8 +31,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--base-url",
-        default=os.getenv("BASE_URL", "https://rpqtfund.com"),
-        help="Target base URL. Defaults to BASE_URL env or https://rpqtfund.com.",
+        default=os.getenv("BASE_URL", "https://redpinequant.com"),
+        help="Target base URL. Defaults to BASE_URL env or https://redpinequant.com.",
     )
     parser.add_argument(
         "--balance",

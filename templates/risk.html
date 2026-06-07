@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Risk Disclosure | RedPine Quant</title>
+  <style>
+    :root { --ink:#17201b; --muted:#5f6b63; --line:#d9e0da; --pine:#173f31; --soft:#f3f7f1; --warn:#8a4b18; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:#fbfcfa; line-height:1.65; }
+    a { color:var(--pine); text-decoration:none; }
+    header { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:2; }
+    .nav { max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    .brand { font-weight:800; }
+    .links { display:flex; gap:16px; flex-wrap:wrap; font-size:15px; }
+    main { max-width:960px; margin:0 auto; padding:42px 20px 72px; }
+    h1 { font-size:clamp(34px,5vw,56px); line-height:1.06; margin:0 0 16px; letter-spacing:0; }
+    h2 { font-size:23px; margin:0 0 10px; }
+    p { margin:0 0 12px; }
+    ul { margin:12px 0 0; padding-left:20px; }
+    li { margin:8px 0; }
+    .lead { color:var(--muted); font-size:19px; }
+    .card { border:1px solid var(--line); border-radius:8px; background:#fff; padding:22px; margin-top:18px; }
+    .notice { border-left:4px solid var(--warn); background:#fff8ef; }
+    footer { border-top:1px solid var(--line); padding:24px 20px; color:var(--muted); }
+    .foot { max-width:1120px; margin:0 auto; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } main { padding-top:28px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="/">RedPine Quant</a>
+      <div class="links">
+        <a href="/copy">GP Copy</a>
+        <a href="/risk">Risk</a>
+        <a href="/faq">FAQ</a>
+        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Risk Disclosure</h1>
+    <p class="lead">FX/CFD 및 카피 트레이딩에는 다양한 기술적, 시장적, 운영상 위험이 있습니다. 거래 전 아래 내용을 충분히 검토해야 합니다.</p>
+
+    <section class="card notice">
+      <h2>주요 위험</h2>
+      <ul>
+        <li>원금 손실 가능성</li>
+        <li>레버리지 위험</li>
+        <li>슬리피지</li>
+        <li>브로커 장애</li>
+        <li>VPS/네트워크 장애</li>
+        <li>EA 오류</li>
+        <li>급변장 위험</li>
+        <li>유동성 부족</li>
+        <li>과거 성과가 미래 성과를 보장하지 않음</li>
+        <li>개인별 투자자문이 아님</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Additional Notes</h2>
+      <p>카피 트레이딩은 전략 계좌와 투자자 계좌의 체결 가격, 지연 시간, 계좌 조건, 증거금 상태에 따라 결과가 달라질 수 있습니다.</p>
+      <p>투자자는 본인의 재무 상황, 위험 감수 수준, 거래 경험을 고려해 참여 여부와 규모를 직접 판단해야 합니다.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot">
+      <span>© RedPine Quant</span>
+      <span><a href="/">Home</a> · <a href="/copy">GP Copy</a> · <a href="/faq">FAQ</a></span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -6,12 +6,14 @@ set -u
 #   BASE_URL=https://staging.example.com scripts/smoke_prod.sh
 #   ADMIN_USER=admin ADMIN_PASS='secret' scripts/smoke_prod.sh
 
-BASE_URL="${BASE_URL:-https://rpqtfund.com}"
+BASE_URL="${BASE_URL:-https://redpinequant.com}"
 BASE_URL="${BASE_URL%/}"
 
 PUBLIC_PATHS=(
   "/"
-  "/portal/login"
+  "/copy"
+  "/risk"
+  "/faq"
 )
 
 ADMIN_PATHS=(
