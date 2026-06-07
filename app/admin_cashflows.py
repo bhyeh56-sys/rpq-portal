@@ -54,9 +54,8 @@ def unit_price_page(
     funds = db.execute(select(Fund).order_by(Fund.id.asc())).scalars().all()
     latest = latest_unit_price(db, fund_id)
     return request.app.state.templates.TemplateResponse(
-        request,
         "admin/unit_price.html",
-        context={"request": request, "funds": funds, "fund_id": fund_id, "latest": latest},
+        {"request": request, "funds": funds, "fund_id": fund_id, "latest": latest},
     )
 
 
@@ -120,10 +119,9 @@ def cashflows_page(
     inv_map = {i.id: i for i in investors}
 
     return request.app.state.templates.TemplateResponse(
-        request,
         "admin/cashflows.html",
-        context={"request": request, "funds": funds, "investors": investors, "flows": flows,
-                 "status": status, "fund_map": fund_map, "inv_map": inv_map},
+        {"request": request, "funds": funds, "investors": investors, "flows": flows,
+         "status": status, "fund_map": fund_map, "inv_map": inv_map},
     )
 
 
