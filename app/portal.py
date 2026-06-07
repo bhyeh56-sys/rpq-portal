@@ -26,7 +26,7 @@ def _require_login(request: Request) -> int:
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, msg: str = ""):
-    return templates.TemplateResponse("portal/login.html", {"request": request, "msg": msg})
+    return templates.TemplateResponse(request, "portal/login.html", context={"request": request, "msg": msg})
 
 @router.head("/login", response_class=HTMLResponse)
 def login_head():
@@ -122,8 +122,9 @@ def portal_home(request: Request, fund_id: int = 1, db: Session = Depends(get_db
     ).mappings().all()
 
     return templates.TemplateResponse(
+        request,
         "portal/index.html",
-        {
+        context={
             "request": request,
             "fund_id": int(fund_id),
             "investor_id": int(investor_id),

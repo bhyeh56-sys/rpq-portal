@@ -12,7 +12,7 @@
 
 `https://redpinequant.com/fund` serves the same participation review page used by the fund review domain.
 
-`rpqtfund.com` is the independent RPQ Portal site. Its root page serves the existing RPQ Portal home with investor portal, admin, API document, and snapshot status links.
+`rpqtfund.com` is the independent RPQ Portal site. Its root page serves the existing RPQ Portal home with investor portal, admin, API document, and snapshot status links. Existing paths such as `/portal/login`, `/admin/investors`, `/fx/mt5/snapshot`, and `/docs` must remain proxied to the FastAPI application.
 
 `https://rpqtfund.com/fund` serves the investment association or fund-style participation review page.
 
@@ -22,12 +22,12 @@
 
 The `redpinequant.com` server block should terminate TLS and proxy requests to the RPQ Portal FastAPI service.
 
-The `rpqtfund.com` and `www.rpqtfund.com` server blocks should also proxy to the same FastAPI service. The application uses the `Host` header to render `templates/rpq_portal_home.html` for the root path on:
+The `rpqtfund.com` and `www.rpqtfund.com` server blocks should also proxy all application paths to the same FastAPI service. The application uses the `Host` header to render `templates/rpq_portal_home.html` for the root path on:
 
 - `rpqtfund.com`
 - `www.rpqtfund.com`
 
-Do not configure `rpqtfund.com` or `www.rpqtfund.com` as a redirect to `/copy`.
+Do not configure `rpqtfund.com` or `www.rpqtfund.com` as a redirect to `/copy`. Do not block `/portal`, `/admin`, `/fx`, or `/docs` at nginx. `/admin` may still be protected by nginx `auth_basic` and should pass the expected admin identity header to the application.
 
 Keep admin, portal, database, and investor functionality separate from the public domain policy.
 
@@ -58,6 +58,8 @@ By default it checks:
 - `GET https://redpinequant.com/faq` returns `200`
 - `GET https://redpinequant.com/fund` returns `200`
 - `GET https://rpqtfund.com/` returns `200` and contains the RPQ Portal home title
+- `GET https://rpqtfund.com/portal/login` returns `200` and contains the investor login title
+- `GET https://rpqtfund.com/admin/investors` returns `401` or `200`, depending on nginx auth state
 - `GET https://www.rpqtfund.com/` returns `200`
 - `GET https://rpqtfund.com/fund` returns `200` and contains the fund review title
 - `rpqtfund.com` responses do not redirect to `https://redpinequant.com/copy`

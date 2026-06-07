@@ -15,6 +15,8 @@ OLD_COPY_REDIRECT_TARGET="https://redpinequant.com/copy"
 
 PUBLIC_PATHS=(
   "/copy"
+  "/risk"
+  "/faq"
   "/fund"
 )
 
@@ -41,6 +43,30 @@ check_get() {
     printf 'FAIL %s -> %s redirect=%s (expected %s, curl exit %s)\n' "$url" "$code" "$redirect_url" "$expected" "$curl_status"
     failures=$((failures + 1))
   fi
+}
+
+check_get_any() {
+  local url="$1"
+  shift
+
+  local result
+  result=$(curl -sS -X GET -o /dev/null -w "%{http_code} %{redirect_url}" --connect-timeout 10 --max-time 20 "$url")
+  local curl_status=$?
+  local code="${result%% *}"
+  local redirect_url="${result#* }"
+  local expected
+
+  if [[ $curl_status -eq 0 && "$redirect_url" != "$OLD_COPY_REDIRECT_TARGET" ]]; then
+    for expected in "$@"; do
+      if [[ "$code" == "$expected" ]]; then
+        printf 'OK   %s -> %s\n' "$url" "$code"
+        return
+      fi
+    done
+  fi
+
+  printf 'FAIL %s -> %s redirect=%s (expected one of: %s; curl exit %s)\n' "$url" "$code" "$redirect_url" "$*" "$curl_status"
+  failures=$((failures + 1))
 }
 
 check_content() {
@@ -74,6 +100,9 @@ done
 
 printf 'Fund targets: %s %s\n' "$FUND_URL" "$FUND_WWW_URL"
 check_content "${FUND_URL}/" "<title>RedPineQuant Fund Portal</title>" "portal title"
+check_content "${FUND_URL}/" "Latest FX Snapshot" "snapshot section"
+check_content "${FUND_URL}/portal/login" "<title>Investor Login</title>" "investor login title"
+check_get_any "${FUND_URL}/admin/investors" "401" "200"
 check_get "${FUND_WWW_URL}/" "200"
 check_content "${FUND_URL}/fund" "<title>RedPine Quant" "fund title"
 

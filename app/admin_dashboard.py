@@ -145,8 +145,9 @@ def admin_home(
         nav_status = {"status": "정상", "level": "ok", "detail": "Snapshot and unit price are recent."}
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/index.html",
-        {
+        context={
             "request": request,
             "fund_id": fid,
             "inv_total": int(inv_total),

@@ -94,7 +94,7 @@ def render_rpq_portal_home(request: Request, fx_account_id: int = 1):
 def home(request: Request, fx_account_id: int = 1):
     if is_fund_host(request):
         return render_rpq_portal_home(request, fx_account_id)
-    return templates.TemplateResponse(request, "index.html", context=public_context(request))
+    return templates.TemplateResponse(request, "company_home.html", context=public_context(request))
 
 
 @app.get("/fund")
