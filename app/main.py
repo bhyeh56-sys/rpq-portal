@@ -52,9 +52,21 @@ def public_context(request: Request) -> dict:
     }
 
 
+def is_fund_host(request: Request) -> bool:
+    host = request.headers.get("host", "").split(":", 1)[0].lower()
+    return host in {"rpqtfund.com", "www.rpqtfund.com"}
+
+
 @app.get("/")
 def home(request: Request):
+    if is_fund_host(request):
+        return templates.TemplateResponse(request, "fund.html", context=public_context(request))
     return templates.TemplateResponse(request, "index.html", context=public_context(request))
+
+
+@app.get("/fund")
+def fund_page(request: Request):
+    return templates.TemplateResponse(request, "fund.html", context=public_context(request))
 
 
 @app.get("/copy")

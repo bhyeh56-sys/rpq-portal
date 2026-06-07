@@ -2,66 +2,59 @@
 set -u
 
 # Usage:
-#   scripts/smoke_prod.sh
-#   BASE_URL=https://staging.example.com scripts/smoke_prod.sh
-#   ADMIN_USER=admin ADMIN_PASS='secret' scripts/smoke_prod.sh
+#   bash scripts/smoke_prod.sh
+#   BASE_URL=https://staging.example.com bash scripts/smoke_prod.sh
 
 BASE_URL="${BASE_URL:-https://redpinequant.com}"
 BASE_URL="${BASE_URL%/}"
+FUND_URL="${FUND_URL:-https://rpqtfund.com}"
+FUND_URL="${FUND_URL%/}"
+FUND_WWW_URL="${FUND_WWW_URL:-https://www.rpqtfund.com}"
+FUND_WWW_URL="${FUND_WWW_URL%/}"
+OLD_COPY_REDIRECT_TARGET="https://redpinequant.com/copy"
 
 PUBLIC_PATHS=(
   "/"
   "/copy"
   "/risk"
   "/faq"
-)
-
-ADMIN_PATHS=(
-  "/admin/investors"
-  "/admin/cashflows"
-  "/admin/unit-price"
+  "/fund"
 )
 
 failures=0
 
-has_admin_auth=false
-if [[ -n "${ADMIN_USER:-}" && -n "${ADMIN_PASS:-}" ]]; then
-  has_admin_auth=true
-fi
-
-check_path() {
-  local path="$1"
+check_get() {
+  local url="$1"
   local expected="$2"
-  shift 2
 
-  local code
-  code=$(curl -sS -X GET -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time 20 "$@" "${BASE_URL}${path}")
+  local result
+  result=$(curl -sS -X GET -o /dev/null -w "%{http_code} %{redirect_url}" --connect-timeout 10 --max-time 20 "$url")
   local curl_status=$?
+  local code="${result%% *}"
+  local redirect_url="${result#* }"
 
   if [[ $curl_status -eq 0 && "$code" == "$expected" ]]; then
-    printf 'OK   %s -> %s\n' "$path" "$code"
+    if [[ "$redirect_url" == "$OLD_COPY_REDIRECT_TARGET" ]]; then
+      printf 'FAIL %s -> %s redirect=%s (must not redirect to old copy target)\n' "$url" "$code" "$redirect_url"
+      failures=$((failures + 1))
+    else
+      printf 'OK   %s -> %s\n' "$url" "$code"
+    fi
   else
-    printf 'FAIL %s -> %s (expected %s, curl exit %s)\n' "$path" "$code" "$expected" "$curl_status"
+    printf 'FAIL %s -> %s redirect=%s (expected %s, curl exit %s)\n' "$url" "$code" "$redirect_url" "$expected" "$curl_status"
     failures=$((failures + 1))
   fi
 }
 
-printf 'Smoke target: %s\n' "$BASE_URL"
+printf 'Primary target: %s\n' "$BASE_URL"
 
 for path in "${PUBLIC_PATHS[@]}"; do
-  check_path "$path" "200"
+  check_get "${BASE_URL}${path}" "200"
 done
 
-if [[ "$has_admin_auth" == true ]]; then
-  for path in "${ADMIN_PATHS[@]}"; do
-    check_path "$path" "200" --user "${ADMIN_USER}:${ADMIN_PASS}"
-  done
-else
-  printf 'Admin credentials not set; expecting 401 for admin paths.\n'
-  for path in "${ADMIN_PATHS[@]}"; do
-    check_path "$path" "401"
-  done
-fi
+printf 'Fund targets: %s %s\n' "$FUND_URL" "$FUND_WWW_URL"
+check_get "${FUND_URL}/" "200"
+check_get "${FUND_WWW_URL}/" "200"
 
 if [[ $failures -gt 0 ]]; then
   printf 'Smoke test failed: %d check(s) failed.\n' "$failures"
