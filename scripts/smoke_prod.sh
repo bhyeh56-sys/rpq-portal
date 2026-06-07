@@ -141,23 +141,28 @@ if [[ -n "$LOCAL_APP_URL" ]]; then
     login_code=$(curl -sS -o /dev/null -D "$header_file" -w "%{http_code}" \
       --connect-timeout 10 --max-time 20 \
       -H "Host: ${HOST_HEADER}" \
+      -H "Content-Type: application/x-www-form-urlencoded" \
       --data-urlencode "username=${PORTAL_TEST_USERNAME}" \
       --data-urlencode "password=${PORTAL_TEST_PASSWORD}" \
       "${LOCAL_APP_URL}/portal/login")
     login_status=$?
-    if [[ $login_status -eq 0 && "$login_code" == "303" ]]; then
+    login_location="$(grep -i '^location:' "$header_file" | head -n 1 | sed -E 's/^[Ll]ocation:[[:space:]]*//; s/\r$//')"
+    if [[ $login_status -eq 0 && "$login_code" == "303" && "$login_location" == "/portal/" ]]; then
       printf 'OK   local portal login POST -> %s\n' "$login_code"
-      session_cookie="$(grep -i '^set-cookie: session=' "$header_file" | head -n 1 | sed -E 's/^[Ss]et-[Cc]ookie: (session=[^;]+).*/\1/')"
+      session_cookie="$(grep -i '^set-cookie:' "$header_file" | grep -i 'session=' | head -n 1 | sed -E 's/\r$//; s/.*[Ss][Ee][Ss][Ss][Ii][Oo][Nn]=([^;]+).*/session=\1/')"
       if [[ -n "$session_cookie" ]]; then
+        printf 'OK   local portal login returned session cookie.\n'
         check_url_body_contains "${LOCAL_APP_URL}/portal/" "Investor Portal" -H "Host: ${HOST_HEADER}" -H "Cookie: ${session_cookie}"
+        check_url_body_contains "${LOCAL_APP_URL}/portal/" "Units" -H "Host: ${HOST_HEADER}" -H "Cookie: ${session_cookie}"
         check_url_body_contains "${LOCAL_APP_URL}/portal/" "Unit price" -H "Host: ${HOST_HEADER}" -H "Cookie: ${session_cookie}"
         check_url_body_contains "${LOCAL_APP_URL}/portal/" "Recent Cashflows" -H "Host: ${HOST_HEADER}" -H "Cookie: ${session_cookie}"
       else
         printf 'FAIL local portal login POST did not return a session cookie.\n'
+        printf 'Observed login redirect location: %s\n' "${login_location:-<none>}"
         failures=$((failures + 1))
       fi
     else
-      printf 'FAIL local portal login POST -> %s (curl exit %s)\n' "$login_code" "$login_status"
+      printf 'FAIL local portal login POST -> %s location=%s (expected 303 location=/portal/, curl exit %s)\n' "$login_code" "${login_location:-<none>}" "$login_status"
       failures=$((failures + 1))
     fi
     rm -f "$header_file"
