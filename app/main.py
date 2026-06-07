@@ -1,4 +1,5 @@
 # app/main.py
+import logging
 import os
 
 from fastapi import Depends, FastAPI, Request
@@ -15,6 +16,7 @@ from .fx_webhook import router as fx_router
 from .portal import router as portal_router
 
 app = FastAPI(title="RPQ Portal")
+logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="templates")
 app.state.templates = templates
@@ -41,20 +43,24 @@ def health():
 
 @app.get("/")
 def home(request: Request, fx_account_id: int = 1, db: Session = Depends(get_db)):
-    row = db.execute(
-        text(
+    snap = None
+    try:
+        row = db.execute(
+            text(
+                """
+                select fx_account_id, asof_at, balance, equity, profit
+                from fx_account_snapshots
+                where fx_account_id = :fxid
+                order by asof_at desc
+                limit 1
             """
-            select fx_account_id, asof_at, balance, equity, profit
-            from fx_account_snapshots
-            where fx_account_id = :fxid
-            order by asof_at desc
-            limit 1
-        """
-        ),
-        {"fxid": fx_account_id},
-    ).mappings().first()
+            ),
+            {"fxid": fx_account_id},
+        ).mappings().first()
+        snap = dict(row) if row else None
+    except Exception:
+        logger.exception("Failed to load latest FX snapshot for portal home")
 
-    snap = dict(row) if row else None
     return templates.TemplateResponse(request, "index.html", {"snap": snap})
 
 
