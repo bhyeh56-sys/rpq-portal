@@ -31,7 +31,7 @@ def _is_explicitly_inactive(value) -> bool:
         return True
     if value is None:
         return False
-    return str(value).strip().lower() in {"0", "false", "f", "no", "n"}
+    return str(value).strip().lower() in {"0", "false", "f", "no", "n", "off", "inactive"}
 
 
 @router.get("/login", response_class=HTMLResponse)

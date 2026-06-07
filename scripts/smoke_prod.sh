@@ -138,7 +138,8 @@ if [[ -n "$LOCAL_APP_URL" ]]; then
 
   if [[ -n "${PORTAL_TEST_USERNAME:-}" && -n "${PORTAL_TEST_PASSWORD:-}" ]]; then
     header_file="$(mktemp)"
-    login_code=$(curl -sS -o /dev/null -D "$header_file" -w "%{http_code}" \
+    login_body_file="$(mktemp)"
+    login_code=$(curl -sS -o "$login_body_file" -D "$header_file" -w "%{http_code}" \
       --connect-timeout 10 --max-time 20 \
       -H "Host: ${HOST_HEADER}" \
       -H "Content-Type: application/x-www-form-urlencoded" \
@@ -161,16 +162,26 @@ if [[ -n "$LOCAL_APP_URL" ]]; then
         printf 'FAIL local portal login POST did not return a session cookie.\n'
         printf 'Observed login redirect location: %s\n' "${login_location:-<none>}"
         printf 'Observed Set-Cookie: %s\n' "${login_set_cookie:-<none>}"
+        printf 'PORTAL_TEST_USERNAME set: yes\n'
+        printf 'Response body preview:\n'
+        head -c 500 "$login_body_file"
+        printf '\n'
         failures=$((failures + 1))
       fi
     else
       printf 'FAIL local portal login POST -> %s location=%s (expected 303 location=/portal/, curl exit %s)\n' "$login_code" "${login_location:-<none>}" "$login_status"
       printf 'Observed Set-Cookie: %s\n' "${login_set_cookie:-<none>}"
+      printf 'PORTAL_TEST_USERNAME set: yes\n'
+      printf 'Response body preview:\n'
+      head -c 500 "$login_body_file"
+      printf '\n'
       failures=$((failures + 1))
     fi
-    rm -f "$header_file"
+    rm -f "$header_file" "$login_body_file"
   else
-    printf 'Portal login POST skipped; set PORTAL_TEST_USERNAME and PORTAL_TEST_PASSWORD to enable it.\n'
+    printf 'Portal login POST skipped; PORTAL_TEST_USERNAME set: %s; PORTAL_TEST_PASSWORD set: %s.\n' \
+      "$(if [[ -n "${PORTAL_TEST_USERNAME:-}" ]]; then printf yes; else printf no; fi)" \
+      "$(if [[ -n "${PORTAL_TEST_PASSWORD:-}" ]]; then printf yes; else printf no; fi)"
   fi
 fi
 
