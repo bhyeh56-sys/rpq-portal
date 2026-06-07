@@ -3,11 +3,13 @@ import os
 
 from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import admin_dashboard
 from .admin_cashflows import router as admin_cashflows_router
 from .admin_investors import router as admin_investors_router
+from .db import SessionLocal
 from .fx_webhook import router as fx_router
 from .portal import router as portal_router
 
@@ -57,10 +59,41 @@ def is_fund_host(request: Request) -> bool:
     return host in {"rpqtfund.com", "www.rpqtfund.com"}
 
 
+def load_latest_snapshot(fx_account_id: int = 1) -> dict | None:
+    if not os.getenv("DATABASE_URL"):
+        return None
+
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            text(
+                """
+                select fx_account_id, asof_at, balance, equity, profit
+                from fx_account_snapshots
+                where fx_account_id = :fxid
+                order by asof_at desc
+                limit 1
+                """
+            ),
+            {"fxid": fx_account_id},
+        ).mappings().first()
+        return dict(row) if row else None
+    except Exception:
+        return None
+    finally:
+        db.close()
+
+
+def render_rpq_portal_home(request: Request, fx_account_id: int = 1):
+    context = public_context(request)
+    context["snap"] = load_latest_snapshot(fx_account_id)
+    return templates.TemplateResponse(request, "rpq_portal_home.html", context=context)
+
+
 @app.get("/")
-def home(request: Request):
+def home(request: Request, fx_account_id: int = 1):
     if is_fund_host(request):
-        return templates.TemplateResponse(request, "fund.html", context=public_context(request))
+        return render_rpq_portal_home(request, fx_account_id)
     return templates.TemplateResponse(request, "index.html", context=public_context(request))
 
 

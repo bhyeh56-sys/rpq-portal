@@ -12,7 +12,9 @@
 
 `https://redpinequant.com/fund` serves the same participation review page used by the fund review domain.
 
-`rpqtfund.com` is an independent participation review site for investment association or fund-style inquiries. It must not redirect to `https://redpinequant.com/copy`.
+`rpqtfund.com` is the independent RPQ Portal site. Its root page serves the existing RPQ Portal home with investor portal, admin, API document, and snapshot status links.
+
+`https://rpqtfund.com/fund` serves the investment association or fund-style participation review page.
 
 `rpqfund.com` is not used.
 
@@ -20,7 +22,7 @@
 
 The `redpinequant.com` server block should terminate TLS and proxy requests to the RPQ Portal FastAPI service.
 
-The `rpqtfund.com` and `www.rpqtfund.com` server blocks should also proxy to the same FastAPI service. The application uses the `Host` header to render `templates/fund.html` for:
+The `rpqtfund.com` and `www.rpqtfund.com` server blocks should also proxy to the same FastAPI service. The application uses the `Host` header to render `templates/rpq_portal_home.html` for the root path on:
 
 - `rpqtfund.com`
 - `www.rpqtfund.com`
@@ -55,8 +57,9 @@ By default it checks:
 - `GET https://redpinequant.com/risk` returns `200`
 - `GET https://redpinequant.com/faq` returns `200`
 - `GET https://redpinequant.com/fund` returns `200`
-- `GET https://rpqtfund.com/` returns `200`
+- `GET https://rpqtfund.com/` returns `200` and contains the RPQ Portal home title
 - `GET https://www.rpqtfund.com/` returns `200`
+- `GET https://rpqtfund.com/fund` returns `200` and contains the fund review title
 - `rpqtfund.com` responses do not redirect to `https://redpinequant.com/copy`
 
 Use `BASE_URL` only when checking a staging instance of the primary public site:
