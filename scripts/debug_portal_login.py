@@ -4,15 +4,12 @@ import os
 import sys
 from pathlib import Path
 
-from passlib.hash import argon2
-from sqlalchemy import text
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.db import DATABASE_URL, SessionLocal  # noqa: E402
-from app.portal import _is_explicitly_inactive  # noqa: E402
+from app.portal import evaluate_investor_login, load_investor_login_row  # noqa: E402
 
 
 def main() -> int:
@@ -38,51 +35,25 @@ def main() -> int:
         return 1
 
     with SessionLocal() as db:
-        row = db.execute(
-            text(
-                """
-                SELECT id, username, password_hash, is_active
-                FROM investors
-                WHERE username = :u
-                LIMIT 1
-                """
-            ),
-            {"u": username},
-        ).mappings().first()
+        row = load_investor_login_row(db, username)
 
     print(f"row_found: {bool(row)}")
-    if not row:
+    decision = evaluate_investor_login(row, password)
+
+    print(f"id: {decision['id']}")
+    print(f"username: {decision['username']}")
+    print(f"is_active_raw: {decision['is_active_raw']!r}")
+    print(f"is_active_type: {decision['is_active_type']}")
+    print(f"password_hash_prefix: {decision['password_hash_prefix']}")
+    print(f"password_hash_length: {decision['password_hash_length']}")
+    print(f"argon2_verify_result: {decision['verify_result']}")
+    if decision["verify_exception"]:
+        print(f"argon2_verify_exception: {decision['verify_exception']}")
+    print(f"app_active_result: {decision['active_result']}")
+
+    if not decision["success"]:
         print("final_result: FAIL")
-        print("failure_reason: investor row not found by username")
-        return 1
-
-    password_hash = (row.get("password_hash") or "").strip()
-    is_active = row.get("is_active")
-    inactive = _is_explicitly_inactive(is_active)
-
-    print(f"id: {row.get('id')}")
-    print(f"username: {row.get('username')}")
-    print(f"is_active_raw: {is_active!r}")
-    print(f"is_active_type: {type(is_active).__name__}")
-    print(f"password_hash_prefix: {password_hash[:32]}")
-    print(f"password_hash_length: {len(password_hash)}")
-
-    try:
-        password_ok = bool(password_hash) and argon2.verify(password, password_hash)
-    except Exception as exc:
-        password_ok = False
-        print(f"argon2_verify_exception: {type(exc).__name__}")
-
-    print(f"argon2_verify_result: {password_ok}")
-    print(f"app_active_result: {not inactive}")
-
-    if inactive:
-        print("final_result: FAIL")
-        print("failure_reason: app logic treats investor as explicitly inactive")
-        return 1
-    if not password_ok:
-        print("final_result: FAIL")
-        print("failure_reason: argon2.verify returned false")
+        print(f"failure_reason: {decision['reason']}")
         return 1
 
     print("final_result: SUCCESS")
