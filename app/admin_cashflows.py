@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -14,6 +16,7 @@ from .models import (
 )
 
 router = APIRouter(prefix="/admin", tags=["admin-cashflows"])
+logger = logging.getLogger(__name__)
 
 
 def audit(db: Session, admin_id: int, action: str, target_type: str, target_id: int, diff: dict | None = None):
@@ -44,6 +47,20 @@ def latest_unit_price(db: Session, fund_id: int):
     return row  # (price, asof_at) or None
 
 
+def _load_funds_for_form(db: Session):
+    try:
+        return db.execute(select(Fund).order_by(Fund.id.asc())).scalars().all()
+    except Exception:
+        logger.exception("Failed to load funds with ORM")
+        try:
+            return db.execute(
+                text("select id, name from funds order by id asc")
+            ).mappings().all()
+        except Exception:
+            logger.exception("Fallback funds query also failed")
+            return []
+
+
 @router.get("/unit-price", response_class=HTMLResponse)
 def unit_price_page(
     request: Request,
@@ -51,8 +68,12 @@ def unit_price_page(
     db: Session = Depends(get_db),
     admin_id: int = Depends(require_admin),
 ):
-    funds = db.execute(select(Fund).order_by(Fund.id.asc())).scalars().all()
-    latest = latest_unit_price(db, fund_id)
+    funds = _load_funds_for_form(db)
+    latest = None
+    try:
+        latest = latest_unit_price(db, fund_id)
+    except Exception:
+        logger.exception("Failed to load latest unit price for admin page")
     return request.app.state.templates.TemplateResponse(
         request,
         "admin/unit_price.html",
@@ -104,17 +125,55 @@ def cashflows_page(
     db: Session = Depends(get_db),
     admin_id: int = Depends(require_admin),
 ):
-    funds = db.execute(select(Fund).order_by(Fund.id.asc())).scalars().all()
-    investors = db.execute(
-        select(Investor).where(Investor.is_active.is_(True)).order_by(Investor.id.asc())
-    ).scalars().all()
+    funds = _load_funds_for_form(db)
+    investors = []
+    flows = []
+    try:
+        investors = db.execute(
+            select(Investor).where(Investor.is_active.is_(True)).order_by(Investor.id.asc())
+        ).scalars().all()
+    except Exception:
+        logger.exception("Failed to load active investors for cashflows page")
+        try:
+            investors = db.execute(
+                text(
+                    """
+                    select id, name, email
+                    from investors
+                    where is_active = true
+                    order by id asc
+                    """
+                )
+            ).mappings().all()
+        except Exception:
+            logger.exception("Fallback active investors query also failed")
+            investors = []
 
-    flows = db.execute(
-        select(CashflowRequest)
-        .where(CashflowRequest.status == status)
-        .order_by(CashflowRequest.id.desc())
-        .limit(200)
-    ).scalars().all()
+    try:
+        flows = db.execute(
+            select(CashflowRequest)
+            .where(CashflowRequest.status == status)
+            .order_by(CashflowRequest.id.desc())
+            .limit(200)
+        ).scalars().all()
+    except Exception:
+        logger.exception("Failed to load cashflows for admin page")
+        try:
+            flows = db.execute(
+                text(
+                    """
+                    select id, fund_id, investor_id, kind, currency, amount, status, requested_at
+                    from cashflow_requests
+                    where status = :status
+                    order by id desc
+                    limit 200
+                    """
+                ),
+                {"status": status},
+            ).mappings().all()
+        except Exception:
+            logger.exception("Fallback cashflows query also failed")
+            flows = []
 
     fund_map = {f.id: f for f in funds}
     inv_map = {i.id: i for i in investors}

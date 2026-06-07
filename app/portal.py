@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 from typing import Optional
 
@@ -15,6 +16,7 @@ from .db import get_db
 
 router = APIRouter(prefix="/portal", tags=["portal"])
 templates = Jinja2Templates(directory="templates")
+logger = logging.getLogger(__name__)
 
 
 def _require_login(request: Request) -> int:
@@ -43,15 +45,19 @@ def login_post(
     if not username or not password:
         return RedirectResponse(url="/portal/login?msg=missing", status_code=303)
 
-    inv = db.execute(
-        text("""
-            SELECT id, username, password_hash, is_active
-            FROM investors
-            WHERE username = :u
-            LIMIT 1
-        """),
-        {"u": username},
-    ).mappings().first()
+    try:
+        inv = db.execute(
+            text("""
+                SELECT id, username, password_hash, is_active
+                FROM investors
+                WHERE username = :u
+                LIMIT 1
+            """),
+            {"u": username},
+        ).mappings().first()
+    except Exception:
+        logger.exception("Failed to load investor during portal login")
+        return RedirectResponse(url="/portal/login?msg=bad", status_code=303)
 
     if (not inv) or (not inv.get("is_active")):
         return RedirectResponse(url="/portal/login?msg=bad", status_code=303)
@@ -78,48 +84,59 @@ def portal_home(request: Request, fund_id: int = 1, db: Session = Depends(get_db
         return RedirectResponse(url="/portal/login", status_code=303)
 
     # latest unit price
-    px_row = db.execute(
-        text("""
-            SELECT asof_at, price
-            FROM unit_price_points
-            WHERE fund_id=:fid
-            ORDER BY asof_at DESC
-            LIMIT 1
-        """),
-        {"fid": int(fund_id)},
-    ).mappings().first()
-
     unit_price: Optional[Decimal] = None
     px_asof = None
-    if px_row:
-        unit_price = Decimal(str(px_row["price"]))
-        px_asof = px_row["asof_at"]
+    try:
+        px_row = db.execute(
+            text("""
+                SELECT asof_at, price
+                FROM unit_price_points
+                WHERE fund_id=:fid
+                ORDER BY asof_at DESC
+                LIMIT 1
+            """),
+            {"fid": int(fund_id)},
+        ).mappings().first()
+
+        if px_row:
+            unit_price = Decimal(str(px_row["price"]))
+            px_asof = px_row["asof_at"]
+    except Exception:
+        logger.exception("Failed to load unit price for investor portal")
 
     # investor units
-    pos = db.execute(
-        text("""
-            SELECT units
-            FROM investor_positions
-            WHERE fund_id=:fid AND investor_id=:iid
-            LIMIT 1
-        """),
-        {"fid": int(fund_id), "iid": int(investor_id)},
-    ).mappings().first()
+    units = Decimal("0")
+    try:
+        pos = db.execute(
+            text("""
+                SELECT units
+                FROM investor_positions
+                WHERE fund_id=:fid AND investor_id=:iid
+                LIMIT 1
+            """),
+            {"fid": int(fund_id), "iid": int(investor_id)},
+        ).mappings().first()
+        units = Decimal(str(pos["units"])) if pos and pos.get("units") is not None else Decimal("0")
+    except Exception:
+        logger.exception("Failed to load investor units for portal")
 
-    units = Decimal(str(pos["units"])) if pos and pos.get("units") is not None else Decimal("0")
     value = (units * unit_price) if (unit_price is not None) else None
 
     # cashflows
-    flows = db.execute(
-        text("""
-            SELECT id, kind, currency, amount, status, requested_at, confirmed_at, cancelled_at
-            FROM cashflow_requests
-            WHERE fund_id=:fid AND investor_id=:iid
-            ORDER BY requested_at DESC
-            LIMIT 50
-        """),
-        {"fid": int(fund_id), "iid": int(investor_id)},
-    ).mappings().all()
+    flows = []
+    try:
+        flows = db.execute(
+            text("""
+                SELECT id, kind, currency, amount, status, requested_at, confirmed_at, cancelled_at
+                FROM cashflow_requests
+                WHERE fund_id=:fid AND investor_id=:iid
+                ORDER BY requested_at DESC
+                LIMIT 50
+            """),
+            {"fid": int(fund_id), "iid": int(investor_id)},
+        ).mappings().all()
+    except Exception:
+        logger.exception("Failed to load cashflows for investor portal")
 
     return templates.TemplateResponse(
         request,

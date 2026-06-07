@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from fastapi import APIRouter, Depends, Request
@@ -11,6 +12,7 @@ from .db import get_db
 from .auth import require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+logger = logging.getLogger(__name__)
 
 
 def _decimal_or_none(value) -> Decimal | None:
@@ -60,80 +62,109 @@ def admin_home(
 ):
     fid = int(fund_id)
 
-    # 1) Investors count (active / total)
-    inv_total = db.execute(text("select count(*) from investors")).scalar_one()
-    inv_active = db.execute(text("select count(*) from investors where is_active=true")).scalar_one()
+    inv_total = 0
+    inv_active = 0
+    pending = 0
+    unit_price = None
+    unit_price_asof = None
+    unit_price_fund_id = fid
+    unit_price_note = None
+    total_units = Decimal("0")
+    units_by_fund = []
+    snap_balance = None
+    snap_equity = None
+    snap_profit = None
+    snap_asof = None
+    snap_fxid = None
 
-    # 2) Pending cashflows count
-    pending = db.execute(
-        text("""
-            select count(*)
-            from cashflow_requests
-            where fund_id=:fid and status='PENDING'
-        """),
-        {"fid": fid},
-    ).scalar_one()
+    try:
+        inv_total = db.execute(text("select count(*) from investors")).scalar_one()
+        inv_active = db.execute(text("select count(*) from investors where is_active=true")).scalar_one()
+    except Exception:
+        logger.exception("Failed to load investor counts for admin dashboard")
 
-    # 3) Latest unit price for selected fund
-    px = db.execute(
-        text("""
-            select fund_id, asof_at, price, note
-            from unit_price_points
-            where fund_id=:fid
-            order by asof_at desc
-            limit 1
-        """),
-        {"fid": fid},
-    ).mappings().first()
+    try:
+        pending = db.execute(
+            text("""
+                select count(*)
+                from cashflow_requests
+                where fund_id=:fid and status='PENDING'
+            """),
+            {"fid": fid},
+        ).scalar_one()
+    except Exception:
+        logger.exception("Failed to load pending cashflows count for admin dashboard")
 
-    unit_price = _decimal_or_none(px["price"]) if px else None
-    unit_price_asof = px["asof_at"] if px else None
-    unit_price_fund_id = int(px["fund_id"]) if px else fid
-    unit_price_note = px["note"] if px else None
+    try:
+        px = db.execute(
+            text("""
+                select fund_id, asof_at, price, note
+                from unit_price_points
+                where fund_id=:fid
+                order by asof_at desc
+                limit 1
+            """),
+            {"fid": fid},
+        ).mappings().first()
 
-    # 4) Total units for selected fund
-    total_units = db.execute(
-        text("select coalesce(sum(units),0) from investor_positions where fund_id=:fid"),
-        {"fid": fid},
-    ).scalar_one()
-    total_units = Decimal(str(total_units))
+        unit_price = _decimal_or_none(px["price"]) if px else None
+        unit_price_asof = px["asof_at"] if px else None
+        unit_price_fund_id = int(px["fund_id"]) if px else fid
+        unit_price_note = px["note"] if px else None
+    except Exception:
+        logger.exception("Failed to load latest unit price for admin dashboard")
 
-    units_by_fund = db.execute(
-        text("""
-            select f.id as fund_id, f.name as fund_name, coalesce(sum(p.units), 0) as total_units
-            from funds f
-            left join investor_positions p on p.fund_id = f.id
-            group by f.id, f.name
-            order by f.id asc
-        """)
-    ).mappings().all()
-    units_by_fund = [
-        {
-            "fund_id": int(row["fund_id"]),
-            "fund_name": row["fund_name"],
-            "total_units": Decimal(str(row["total_units"])),
-        }
-        for row in units_by_fund
-    ]
+    try:
+        total_units = db.execute(
+            text("select coalesce(sum(units),0) from investor_positions where fund_id=:fid"),
+            {"fid": fid},
+        ).scalar_one()
+        total_units = Decimal(str(total_units))
+    except Exception:
+        logger.exception("Failed to load total units for admin dashboard")
+        total_units = Decimal("0")
 
-    # 5) Latest FX snapshot (across active fx accounts for the fund)
-    snap = db.execute(
-        text("""
-            select s.fx_account_id, s.asof_at, s.balance, s.equity, s.profit
-            from fx_account_snapshots s
-            join fx_accounts a on a.id = s.fx_account_id
-            where a.fund_id=:fid and a.is_active=true
-            order by s.asof_at desc
-            limit 1
-        """),
-        {"fid": fid},
-    ).mappings().first()
+    try:
+        units_rows = db.execute(
+            text("""
+                select f.id as fund_id, f.name as fund_name, coalesce(sum(p.units), 0) as total_units
+                from funds f
+                left join investor_positions p on p.fund_id = f.id
+                group by f.id, f.name
+                order by f.id asc
+            """)
+        ).mappings().all()
+        units_by_fund = [
+            {
+                "fund_id": int(row["fund_id"]),
+                "fund_name": row["fund_name"],
+                "total_units": Decimal(str(row["total_units"])),
+            }
+            for row in units_rows
+        ]
+    except Exception:
+        logger.exception("Failed to load units by fund for admin dashboard")
 
-    snap_balance = _decimal_or_none(snap["balance"]) if snap else None
-    snap_equity = _decimal_or_none(snap["equity"]) if snap else None
-    snap_profit = _decimal_or_none(snap["profit"]) if snap else None
-    snap_asof = snap["asof_at"] if snap else None
-    snap_fxid = snap["fx_account_id"] if snap else None
+    try:
+        snap = db.execute(
+            text("""
+                select s.fx_account_id, s.asof_at, s.balance, s.equity, s.profit
+                from fx_account_snapshots s
+                join fx_accounts a on a.id = s.fx_account_id
+                where a.fund_id=:fid and a.is_active=true
+                order by s.asof_at desc
+                limit 1
+            """),
+            {"fid": fid},
+        ).mappings().first()
+
+        snap_balance = _decimal_or_none(snap["balance"]) if snap else None
+        snap_equity = _decimal_or_none(snap["equity"]) if snap else None
+        snap_profit = _decimal_or_none(snap["profit"]) if snap else None
+        snap_asof = snap["asof_at"] if snap else None
+        snap_fxid = snap["fx_account_id"] if snap else None
+    except Exception:
+        logger.exception("Failed to load latest FX snapshot for admin dashboard")
 
     # 6) Implied unit price from latest equity (if possible)
     implied_px = None

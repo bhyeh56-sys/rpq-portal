@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -10,6 +12,7 @@ from .auth import require_admin
 from .models import Investor, AuditLog
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+logger = logging.getLogger(__name__)
 
 
 def audit(
@@ -39,26 +42,48 @@ def investors_page(
     db: Session = Depends(get_db),
     admin_id: int = Depends(require_admin),
 ):
-    stmt = select(Investor)
+    investors = []
+    try:
+        stmt = select(Investor)
 
-    if not include_inactive:
-        stmt = stmt.where(Investor.is_active.is_(True))
+        if not include_inactive:
+            stmt = stmt.where(Investor.is_active.is_(True))
 
-    if q:
-        like = f"%{q.strip()}%"
-        stmt = stmt.where(
-            or_(
-                Investor.name.ilike(like),
-                Investor.email.ilike(like),
-                Investor.username.ilike(like),
+        if q:
+            like = f"%{q.strip()}%"
+            stmt = stmt.where(
+                or_(
+                    Investor.name.ilike(like),
+                    Investor.email.ilike(like),
+                    Investor.username.ilike(like),
+                )
             )
-        )
 
-    investors = (
-        db.execute(stmt.order_by(Investor.id.desc()).limit(200))
-        .scalars()
-        .all()
-    )
+        investors = (
+            db.execute(stmt.order_by(Investor.id.desc()).limit(200))
+            .scalars()
+            .all()
+        )
+    except Exception:
+        logger.exception("Failed to load investors for admin page")
+        try:
+            params = {"include_inactive": bool(include_inactive), "q": f"%{(q or '').strip().lower()}%"}
+            investors = db.execute(
+                text(
+                    """
+                    select id, name, email, is_active, null as username
+                    from investors
+                    where (:include_inactive = true or is_active = true)
+                      and (:q = '%%' or lower(name) like :q or lower(email) like :q)
+                    order by id desc
+                    limit 200
+                    """
+                ),
+                params,
+            ).mappings().all()
+        except Exception:
+            logger.exception("Fallback investor query also failed")
+            investors = []
 
     return request.app.state.templates.TemplateResponse(
         request,
