@@ -35,7 +35,7 @@ check_path() {
   shift 2
 
   local code
-  code=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time 20 "$@" "${BASE_URL}${path}")
+  code=$(curl -sS -X GET -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time 20 "$@" "${BASE_URL}${path}")
   local curl_status=$?
 
   if [[ $curl_status -eq 0 && "$code" == "$expected" ]]; then

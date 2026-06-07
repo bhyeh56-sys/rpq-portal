@@ -1,7 +1,7 @@
 # app/main.py
 import os
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -54,24 +54,24 @@ def public_context(request: Request) -> dict:
 
 @app.get("/")
 def home(request: Request):
-    return templates.TemplateResponse("index.html", public_context(request))
+    return templates.TemplateResponse(request, "index.html", context=public_context(request))
 
 
 @app.get("/copy")
 def copy_page(request: Request):
-    return templates.TemplateResponse("copy.html", public_context(request))
+    return templates.TemplateResponse(request, "copy.html", context=public_context(request))
 
 
 @app.get("/risk")
 def risk_page(request: Request):
-    return templates.TemplateResponse("risk.html", public_context(request))
+    return templates.TemplateResponse(request, "risk.html", context=public_context(request))
 
 
 @app.get("/faq")
 def faq_page(request: Request):
-    return templates.TemplateResponse("faq.html", public_context(request))
+    return templates.TemplateResponse(request, "faq.html", context=public_context(request))
 
 
 @app.head("/")
 def home_head():
-    return
+    return Response(status_code=200, media_type="text/html")
