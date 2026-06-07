@@ -66,7 +66,7 @@
           <div>fx_account_id</div>
           <div>{% if snap_fxid %}{{ snap_fxid }}{% else %}Not available{% endif %}</div>
           <div>asof_at</div>
-          <div>{% if snap_asof %}{{ snap_asof.strftime('%Y-%m-%d %H:%M') }}{% else %}Not available{% endif %}</div>
+          <div>{% if snap_asof %}{{ snap_asof.strftime('%Y-%m-%d %H:%M') if snap_asof.strftime is defined else snap_asof }}{% else %}Not available{% endif %}</div>
           <div>balance</div>
           <div class="num">{% if snap_balance is not none %}{{ "{:,.2f}".format(snap_balance) }}{% else %}No data{% endif %}</div>
           <div>equity</div>
@@ -89,7 +89,7 @@
           <div>fund_id</div>
           <div>{{ unit_price_fund_id }}</div>
           <div>asof_at</div>
-          <div>{% if unit_price_asof %}{{ unit_price_asof.strftime('%Y-%m-%d %H:%M') }}{% else %}Not available{% endif %}</div>
+          <div>{% if unit_price_asof %}{{ unit_price_asof.strftime('%Y-%m-%d %H:%M') if unit_price_asof.strftime is defined else unit_price_asof }}{% else %}Not available{% endif %}</div>
           <div>price</div>
           <div class="num">{% if unit_price is not none %}{{ "{:,.6f}".format(unit_price) }}{% else %}No data{% endif %}</div>
         </div>

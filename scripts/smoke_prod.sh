@@ -5,6 +5,11 @@ set -u
 #   scripts/smoke_prod.sh
 #   BASE_URL=https://staging.example.com scripts/smoke_prod.sh
 #   ADMIN_USER=admin ADMIN_PASS='secret' scripts/smoke_prod.sh
+#
+# App-direct checks behind nginx can be run separately with:
+#   curl -H "Host: rpqtfund.com" -H "X-Admin-User: admin" http://127.0.0.1:8001/admin/investors
+#   curl -H "Host: rpqtfund.com" -H "X-Admin-User: admin" http://127.0.0.1:8001/admin/unit-price
+#   curl -H "Host: rpqtfund.com" -H "X-Admin-User: admin" http://127.0.0.1:8001/admin/cashflows
 
 BASE_URL="${BASE_URL:-https://rpqtfund.com}"
 BASE_URL="${BASE_URL%/}"
@@ -73,11 +78,14 @@ for path in "${PUBLIC_PATHS[@]}"; do
 done
 
 check_body_contains "/" "Latest FX Snapshot"
+check_body_contains "/" "Portal"
+check_body_contains "/portal/login" "Investor Login"
+check_body_contains "/portal/login" "name=\"password\""
 
 if [[ "$has_admin_auth" == true ]]; then
-  for path in "${ADMIN_PATHS[@]}"; do
-    check_path "$path" "200" --user "${ADMIN_USER}:${ADMIN_PASS}"
-  done
+  check_body_contains "/admin/investors" "Create Investor" --user "${ADMIN_USER}:${ADMIN_PASS}"
+  check_body_contains "/admin/cashflows" "Cashflows" --user "${ADMIN_USER}:${ADMIN_PASS}"
+  check_body_contains "/admin/unit-price" "Unit Price" --user "${ADMIN_USER}:${ADMIN_PASS}"
 else
   printf 'Admin credentials not set; expecting 401 for admin paths.\n'
   for path in "${ADMIN_PATHS[@]}"; do

@@ -50,7 +50,7 @@
         {% if unit_price is not none %}
           <b>USD {{ "{:,.6f}".format(unit_price) }}</b>
           {% if px_asof %}
-            <div class="muted value-note">As of {{ px_asof.strftime('%Y-%m-%d %H:%M') }}</div>
+            <div class="muted value-note">As of {{ px_asof.strftime('%Y-%m-%d %H:%M') if px_asof and px_asof.strftime is defined else px_asof }}</div>
           {% endif %}
         {% else %}
           <span class="muted">기준가 미등록</span>
@@ -102,10 +102,10 @@
               {% endif %}
             </td>
             <td class="num">
-              {% if f.requested_at %}{{ f.requested_at.strftime('%Y-%m-%d %H:%M') }}{% else %}-{% endif %}
+              {% if f.requested_at %}{{ f.requested_at.strftime('%Y-%m-%d %H:%M') if f.requested_at.strftime is defined else f.requested_at }}{% else %}-{% endif %}
             </td>
             <td class="num">
-              {% if f.confirmed_at %}{{ f.confirmed_at.strftime('%Y-%m-%d %H:%M') }}{% else %}-{% endif %}
+              {% if f.confirmed_at %}{{ f.confirmed_at.strftime('%Y-%m-%d %H:%M') if f.confirmed_at.strftime is defined else f.confirmed_at }}{% else %}-{% endif %}
             </td>
           </tr>
         {% else %}

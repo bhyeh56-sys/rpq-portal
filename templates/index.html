@@ -58,10 +58,10 @@
     {% if snap %}
       <table>
         <tr><th>fx_account_id</th><td>{{ snap.fx_account_id }}</td></tr>
-        <tr><th>asof_at</th><td>{{ snap.asof_at.strftime('%Y-%m-%d %H:%M %Z') if snap.asof_at else '' }}</td></tr>
-        <tr><th>balance</th><td>{{ '%.2f'|format(snap.balance) }}</td></tr>
-        <tr><th>equity</th><td>{{ '%.2f'|format(snap.equity) }}</td></tr>
-        <tr><th>profit</th><td>{{ '%.2f'|format(snap.profit) }}</td></tr>
+        <tr><th>asof_at</th><td>{{ snap.asof_at.strftime('%Y-%m-%d %H:%M %Z') if snap.asof_at and snap.asof_at.strftime is defined else snap.asof_at or '' }}</td></tr>
+        <tr><th>balance</th><td>{{ snap.balance }}</td></tr>
+        <tr><th>equity</th><td>{{ snap.equity }}</td></tr>
+        <tr><th>profit</th><td>{{ snap.profit }}</td></tr>
       </table>
     {% else %}
       <div class="muted">스냅샷이 없습니다. MT5(또는 curl)로 <code>/fx/mt5/snapshot</code> 먼저 넣으세요.</div>

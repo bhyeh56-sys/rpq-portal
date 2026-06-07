@@ -61,9 +61,9 @@ def investors_page(
     )
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investors_list.html",
         {
-            "request": request,
             "investors": investors,
             "q": q or "",
             "include_inactive": include_inactive,
@@ -126,8 +126,9 @@ def create_investor(
 
     # return one row snippet (htmx afterbegin)
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
-        {"request": request, "inv": inv},
+        {"inv": inv},
     )
 
 
@@ -158,8 +159,9 @@ def deactivate_investor(
     db.refresh(inv)
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
-        {"request": request, "inv": inv},
+        {"inv": inv},
     )
 
 
@@ -190,8 +192,9 @@ def restore_investor(
     db.refresh(inv)
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/investor_row.html",
-        {"request": request, "inv": inv},
+        {"inv": inv},
     )
 
 
@@ -208,8 +211,9 @@ def credentials_page(
         raise HTTPException(status_code=404, detail="Not found")
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/credentials.html",
-        {"request": request, "inv": inv, "msg": msg},
+        {"inv": inv, "msg": msg},
     )
 
 
@@ -271,9 +275,9 @@ def credentials_save(
     db.commit()
     db.refresh(inv)
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/credentials.html",
         {
-            "request": request,
             "inv": inv,
             "msg": "ok",
             "saved_username": username,

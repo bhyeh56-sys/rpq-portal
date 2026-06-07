@@ -25,6 +25,11 @@ def _age_info(asof_at):
 
     now = datetime.now(timezone.utc)
     dt = asof_at
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+        except ValueError:
+            return {"status": "Unknown", "level": "warn", "age": str(asof_at)}
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
 
@@ -145,9 +150,9 @@ def admin_home(
         nav_status = {"status": "정상", "level": "ok", "detail": "Snapshot and unit price are recent."}
 
     return request.app.state.templates.TemplateResponse(
+        request,
         "admin/index.html",
         {
-            "request": request,
             "fund_id": fid,
             "inv_total": int(inv_total),
             "inv_active": int(inv_active),

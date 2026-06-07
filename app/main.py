@@ -55,7 +55,7 @@ def home(request: Request, fx_account_id: int = 1, db: Session = Depends(get_db)
     ).mappings().first()
 
     snap = dict(row) if row else None
-    return templates.TemplateResponse("index.html", {"request": request, "snap": snap})
+    return templates.TemplateResponse(request, "index.html", {"snap": snap})
 
 
 @app.head("/")
