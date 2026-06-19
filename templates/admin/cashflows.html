@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cashflows</title>
   <style>
     body { font-family: sans-serif; margin: 24px; }
@@ -23,6 +24,7 @@
     .kind-withdraw { color:#b00020; font-weight:700; }
     .kind-deposit { color:#0b6b2b; font-weight:700; }
   </style>
+  {% include "_mobile.html" %}
 </head>
 <body>
   <h2>Cashflows</h2>
@@ -73,6 +75,7 @@
   </form>
 
   <h3>Requests</h3>
+  <div class="table-scroll">
   <table>
     <thead>
       <tr>
@@ -121,5 +124,6 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </body>
 </html>

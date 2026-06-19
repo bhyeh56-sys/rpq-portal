@@ -1,0 +1,44 @@
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+  body { line-height: 1.5; overflow-wrap: anywhere; }
+  input, select, button, .btn, a.btn {
+    min-height: 44px;
+    font: inherit;
+  }
+  input, select, textarea { max-width: 100%; }
+  button, .btn, a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll > table { min-width: 680px; }
+
+  @media (max-width: 640px) {
+    body { margin: 0; padding: 16px; font-size: 16px; }
+    .wrap { margin: 0 auto; padding: 16px 0; }
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.2rem; }
+    .muted, .k, .help, .err, .ok, .badge, .status, th { font-size: 1rem; }
+    .row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .row > input, .row > select, .row > button, .row > .btn,
+    .row > a.btn { width: 100% !important; }
+    .topbar { align-items: flex-start; flex-wrap: wrap; }
+    .topbar .right, .topbar .right form, .topbar button { width: 100%; }
+    .kv, .metric { grid-template-columns: 1fr; gap: 2px; }
+    .kv > div:nth-child(even), .metric > div:nth-child(even) { margin-bottom: 8px; }
+    .card { padding: 16px; }
+    .help { margin: -2px 0 10px; }
+    label { min-width: 0; }
+    .handoff .kv { grid-template-columns: 1fr; }
+    .admin-nav { align-items: stretch; padding: 8px; }
+    .admin-nav, .admin-nav__left, .admin-nav__right { flex-direction: column; }
+    .admin-nav a { min-height: 44px; display: flex; align-items: center; padding: 8px; }
+  }
+</style>

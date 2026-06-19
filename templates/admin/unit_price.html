@@ -2,10 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Unit Price</title>
   <style>
     body { font-family: sans-serif; margin: 24px; }
-    .row { display:flex; gap:16px; align-items:center; margin: 8px 0; }
+    .row { display:flex; gap:16px; align-items:center; margin: 8px 0; flex-wrap:wrap; }
     input, select { padding: 6px; }
     table { border-collapse: collapse; margin-top: 12px; }
     th, td { border: 1px solid #ddd; padding: 8px 10px; }
@@ -14,6 +15,7 @@
     .help { color:#666; font-size:13px; }
     button { padding:8px 12px; border:1px solid #333; border-radius:8px; background:#111; color:#fff; cursor:pointer; }
   </style>
+  {% include "_mobile.html" %}
 </head>
 <body>
   <h2>Unit Price</h2>

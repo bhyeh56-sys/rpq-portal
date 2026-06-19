@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Investors</title>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <style>
@@ -29,6 +30,7 @@
     .col-username { width: 160px; }
     .col-cred { width: 120px; }
   </style>
+  {% include "_mobile.html" %}
 </head>
 <body>
 <div class="wrap">
@@ -62,6 +64,7 @@
     </div>
   </form>
 
+  <div class="table-scroll">
   <table>
     <thead>
       <tr>
@@ -80,6 +83,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 
 </div>
 </body>

@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Investor Portal</title>
   <style>
     body{font-family:system-ui,Arial,sans-serif; max-width:900px; margin:24px auto; padding:0 12px;}
@@ -23,6 +24,7 @@
     .kv div{padding:2px 0;}
     .num{font-variant-numeric: tabular-nums;}
   </style>
+  {% include "_mobile.html" %}
 </head>
 <body>
 
@@ -71,6 +73,7 @@
   <div class="card">
     <h3 style="margin:0 0 10px 0">Recent Cashflows</h3>
 
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -115,6 +118,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
 
     <div class="muted" style="margin-top:10px;">
       Withdrawal request UI will be added later. (Read-only portal for now.)
