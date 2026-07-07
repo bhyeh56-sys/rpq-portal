@@ -12,7 +12,7 @@
 
 `https://redpinequant.com/fund` serves the same participation review page used by the fund review domain.
 
-`rpqtfund.com` is the independent RPQ Portal site. Its root page serves the existing RPQ Portal home with investor portal, admin, API document, and snapshot status links. Existing paths such as `/portal/login`, `/admin/investors`, `/fx/mt5/snapshot`, and `/docs` must remain proxied to the FastAPI application.
+`rpqtfund.com` is the independent RPQ Portal site. Its root page serves the role-based RPQ Portal home with investor portal, admin portal, Unit Price / NAV entry cards, and live MT5 snapshot status. Existing paths such as `/portal/login`, `/admin/investors`, `/admin/unit-price`, `/fx/mt5/snapshot`, and `/docs` must remain proxied to the FastAPI application.
 
 `https://rpqtfund.com/fund` serves the investment association or fund-style participation review page.
 
@@ -57,7 +57,7 @@ By default it checks:
 - `GET https://redpinequant.com/risk` returns `200`
 - `GET https://redpinequant.com/faq` returns `200`
 - `GET https://redpinequant.com/fund` returns `200`
-- `GET https://rpqtfund.com/` returns `200` and contains the RPQ Portal home title
+- `GET https://rpqtfund.com/` returns `200` and contains the RPQ Fund Live Snapshot home title
 - `GET https://rpqtfund.com/portal/login` returns `200` and contains the investor login title
 - `GET https://rpqtfund.com/admin/investors` returns `401` or `200`, depending on nginx auth state
 - `GET https://www.rpqtfund.com/` returns `200`

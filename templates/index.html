@@ -1,87 +1,405 @@
 <!doctype html>
 <html lang="ko">
-<body style="margin:0; padding:0;">
-  <div style="
-    max-width:1100px;
-    margin:40px auto;
-    padding:0 32px;
-  ">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>RedPineQuant Fund Portal</title>
-  <div style="margin:12px 0 18px 0;">
-</div>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RPQ Fund Portal</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
-    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; max-width: 760px; }
-    .muted { color: #666; font-size: 14px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 8px; }
-    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
-    code { background:#f6f6f6; padding:2px 6px; border-radius:6px; }
-    a { text-decoration: none; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0b0f19;
+      color: #f3f4f6;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: inherit; }
+    .page {
+      min-height: 100vh;
+      padding: 78px 28px 34px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .shell { width: 100%; max-width: 1152px; }
+    .hero { display: grid; gap: 104px; margin-bottom: 26px; }
+    .brand { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+    .brand strong { font-size: 18px; letter-spacing: 0; }
+    .brand span { color: #9ca3af; font-size: 13px; }
+    .entry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 42px;
+    }
+    .entry-card {
+      min-height: 188px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 24px 124px 24px 24px;
+      border-radius: 8px;
+      border: 3px solid #1f2937;
+      background: #111827;
+      color: #f9fafb;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 26px 80px rgba(0,0,0,.32);
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+    .entry-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .78;
+      pointer-events: none;
+    }
+    .entry-card::after {
+      content: "";
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      width: 82px;
+      height: 82px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      pointer-events: none;
+    }
+    .entry-card:hover { border-color: rgba(255,255,255,.48); transform: translateY(-3px); }
+    .entry-card.investor {
+      border-color: rgba(56,189,248,.92);
+      background: linear-gradient(135deg, #075985, #0f172a 68%);
+    }
+    .entry-card.admin {
+      border-color: rgba(167,139,250,.88);
+      background: linear-gradient(135deg, #4c1d95, #111827 68%);
+    }
+    .entry-card.nav-card {
+      border-color: rgba(52,211,153,.86);
+      background: linear-gradient(135deg, #065f46, #102019 68%);
+    }
+    .entry-card.investor::before {
+      background: linear-gradient(180deg, rgba(125,211,252,.16), transparent 70%);
+    }
+    .entry-card.admin::before {
+      background: linear-gradient(180deg, rgba(196,181,253,.15), transparent 70%);
+    }
+    .entry-card.nav-card::before {
+      background: linear-gradient(180deg, rgba(134,239,172,.14), transparent 70%);
+    }
+    .entry-top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      z-index: 1;
+      max-width: 100%;
+    }
+    .entry-title {
+      display: block;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0;
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+    .entry-desc {
+      color: rgba(243,244,246,.72);
+      font-size: 14px;
+      line-height: 1.55;
+      position: relative;
+      z-index: 1;
+    }
+    .entry-arrow {
+      position: absolute;
+      right: 33px;
+      top: 33px;
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.16);
+      color: #fff;
+      font-size: 0;
+      font-weight: 950;
+      border: 2px solid rgba(255,255,255,.3);
+      z-index: 2;
+    }
+    .entry-arrow::before {
+      content: "→";
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+      transform: translateY(-2px);
+    }
+    .entry-card.investor .entry-arrow {
+      background: rgba(56,189,248,.26);
+      color: #e0f2fe;
+      border-color: rgba(125,211,252,.72);
+    }
+    .entry-card.admin .entry-arrow {
+      background: rgba(167,139,250,.26);
+      color: #ede9fe;
+      border-color: rgba(196,181,253,.68);
+    }
+    .entry-card.nav-card .entry-arrow {
+      background: rgba(52,211,153,.26);
+      color: #dcfce7;
+      border-color: rgba(134,239,172,.68);
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: .82fr 1.5fr;
+      gap: 18px;
+      opacity: .84;
+      height: 33vh;
+      min-height: 310px;
+      max-height: 34vh;
+    }
+    .stack { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 14px;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+    .card:hover { border-color: #374151; transform: translateY(-1px); }
+    .metric-head, .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .label { color: #9ca3af; font-size: 14px; }
+    .value { margin-top: 8px; font-size: 26px; line-height: 1; font-weight: 800; }
+    .hint { margin: 6px 0 0; color: #6b7280; font-size: 12px; }
+    .subvalue { margin-top: 4px; color: #9ca3af; font-size: 13px; }
+    .sky { color: #38bdf8; }
+    .emerald { color: #34d399; }
+    .indigo { color: #818cf8; }
+    .main {
+      position: relative;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .main::before {
+      content: "";
+      position: absolute;
+      inset: -40% -20% auto auto;
+      width: 340px;
+      height: 340px;
+      background: radial-gradient(circle, rgba(56,189,248,.14), transparent 65%);
+      pointer-events: none;
+    }
+    .live {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #d1d5db;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(14,165,233,.1);
+      border: 1px solid rgba(14,165,233,.3);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .01em;
+    }
+    .return-block { margin: 14px 0 10px; position: relative; z-index: 1; }
+    .eyebrow {
+      margin-bottom: 4px;
+      color: #9ca3af;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+    }
+    .return-value {
+      color: #fff;
+      font-size: clamp(38px, 4.7vw, 52px);
+      line-height: .95;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+      margin-top: 8px;
+    }
+    .mini {
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(11,15,25,.48);
+    }
+    .mini span {
+      display: block;
+      color: #9ca3af;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .mini strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 14px;
+      color: #f9fafb;
+      font-variant-numeric: tabular-nums;
+    }
+    .chart { width: 100%; height: 54px; position: relative; z-index: 1; }
+    svg.icon { width: 20px; height: 20px; flex: 0 0 auto; }
+    .badge svg.icon { width: 16px; height: 16px; }
+    .muted-empty { color: #9ca3af; font-size: 14px; }
+    @media (max-width: 900px) {
+      .page { padding: 28px 18px; }
+      .hero { gap: 42px; }
+      .entry-grid { grid-template-columns: 1fr; gap: 18px; }
+      .dashboard { grid-template-columns: 1fr; height: auto; max-height: none; }
+      .mini-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <h1>RPQ Portal</h1>
-  <div class="card">
-    <div class="muted">FastAPI + Postgres + MT5 Snapshot</div>
+  <main class="page">
+    <div class="shell">
+      <header class="hero">
+        <nav class="entry-grid" aria-label="Role entry cards">
+          <a class="entry-card investor" href="/portal/login">
+            <span class="entry-top">
+              <span class="entry-title">투자자 포탈</span>
+            </span>
+            <span class="entry-arrow">→</span>
+            <span class="entry-desc">투자자 로그인 화면으로 이동합니다. 평가금, 수익률, 입출금 내역 확인.</span>
+          </a>
+          <a class="entry-card admin" href="/admin/investors">
+            <span class="entry-top">
+              <span class="entry-title">관리자 포탈</span>
+            </span>
+            <span class="entry-arrow">→</span>
+            <span class="entry-desc">투자자 계정, 상태, 인증정보를 관리하는 운영 화면입니다.</span>
+          </a>
+          <a class="entry-card nav-card" href="/admin/unit-price?fund_id=1">
+            <span class="entry-top">
+              <span class="entry-title">Unit Price / NAV</span>
+            </span>
+            <span class="entry-arrow">→</span>
+            <span class="entry-desc">fund_id 1 기준 단가와 NAV 입력 및 확인 화면입니다.</span>
+          </a>
+        </nav>
+        <div class="brand">
+          <strong>RPQ Fund Live Snapshot</strong>
+          <span>
+            MT5 account snapshot · fx_account_id {{ snap.fx_account_id if snap else fx_account_id|default(1) }}
+            {% if snap and snap.asof_at %} · {{ snap.asof_at.strftime('%Y-%m-%d %H:%M %Z') }}{% endif %}
+          </span>
+        </div>
+      </header>
 
-  <div style="margin:20px 0; display:flex; gap:12px; flex-wrap:wrap;">
-    <a href="/portal/login"
-       style="
-         padding:10px 16px;
-         border-radius:8px;
-         background:#0d6efd;
-         color:#fff;
-         text-decoration:none;
-         font-weight:600;
-       ">
-      투자자 포탈
-    </a>
+      {% if snap %}
+      <section class="dashboard" aria-label="MT5 account snapshot">
+        <div class="stack">
+          <article class="card">
+            <div class="metric-head">
+              <span class="label">Balance (잔고)</span>
+              <svg class="icon sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div class="value sky">{{ metrics.balance or '-' }}</div>
+            <p class="hint">Latest deposited account baseline</p>
+          </article>
 
-    <a href="/admin/investors"
-       style="
-         padding:10px 16px;
-         border-radius:8px;
-         background:#212529;
-         color:#fff;
-         text-decoration:none;
-         font-weight:600;
-       ">
-      관리자 포탈
-    </a>
-    <a href="/admin/unit-price?fund_id=1"
-       style="
-         padding:10px 16px;
-         border-radius:8px;
-         background:#495057;
-         color:#fff;
-         text-decoration:none;
-         font-weight:600;
-       ">
-      Unit Price / NAV
-    </a>
-  </div>
+          <article class="card">
+            <div class="metric-head">
+              <span class="label">Equity (평가금)</span>
+              <svg class="icon emerald" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path>
+              </svg>
+            </div>
+            <div class="value emerald">{{ metrics.equity or '-' }}</div>
+            <p class="hint">Latest MT5 equity snapshot</p>
+          </article>
 
-    <h3>Latest FX Snapshot</h3>
+          <article class="card">
+            <div class="metric-head">
+              <span class="label">Profit (손익)</span>
+              <svg class="icon indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 3v18"></path><path d="m17 8-5-5-5 5"></path><path d="M5 21h14"></path>
+              </svg>
+            </div>
+            <div class="value indigo">{{ metrics.profit or '-' }}</div>
+            <p class="hint">Equity minus balance</p>
+          </article>
+        </div>
 
-    {% if snap %}
-      <table>
-        <tr><th>fx_account_id</th><td>{{ snap.fx_account_id }}</td></tr>
-        <tr><th>asof_at</th><td>{{ snap.asof_at.strftime('%Y-%m-%d %H:%M %Z') if snap.asof_at and snap.asof_at.strftime is defined else snap.asof_at or '' }}</td></tr>
-        <tr><th>balance</th><td>{{ snap.balance }}</td></tr>
-        <tr><th>equity</th><td>{{ snap.equity }}</td></tr>
-        <tr><th>profit</th><td>{{ snap.profit }}</td></tr>
-      </table>
-    {% else %}
-      <div class="muted">스냅샷이 없습니다. MT5(또는 curl)로 <code>/fx/mt5/snapshot</code> 먼저 넣으세요.</div>
-    {% endif %}
+        <article class="card main">
+          <div class="topbar">
+            <div class="live">
+              <svg class="icon sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+              <span>LIVE SNAPSHOT</span>
+            </div>
+            <div class="badge">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+              <span>Verified Live</span>
+            </div>
+          </div>
 
-    <p class="muted" style="margin-top:12px;">
-      API 문서: <a href="/docs">/docs</a>
-    </p>
-  
-  </div>
+          <div class="return-block">
+            <div class="eyebrow">Snapshot Return Rate</div>
+            <div class="return-value">{{ metrics.return_rate or '-' }}</div>
+            <div class="subvalue">profit {{ metrics.profit or '-' }} / balance {{ metrics.balance or '-' }}</div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini"><span>Latest</span><strong>{{ snap.asof_at.strftime('%H:%M %Z') if snap.asof_at else '-' }}</strong></div>
+            <div class="mini"><span>Previous</span><strong>{{ metrics.previous_equity or '-' }}</strong></div>
+            <div class="mini"><span>5-min change</span><strong>{{ metrics.equity_change or '-' }}</strong></div>
+          </div>
+
+          <div class="chart">
+            <svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.4"></stop>
+                  <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d="{{ metrics.chart_path }} L 300 100 L 0 100 Z" fill="url(#gradient)"></path>
+              <path d="{{ metrics.chart_path }}" fill="none" stroke="#38bdf8" stroke-width="2"></path>
+            </svg>
+          </div>
+        </article>
+      </section>
+      {% else %}
+      <section class="card">
+        <div class="muted-empty">아직 표시할 MT5 snapshot 데이터가 없습니다.</div>
+      </section>
+      {% endif %}
+    </div>
+  </main>
 </body>
 </html>

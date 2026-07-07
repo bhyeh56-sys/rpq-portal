@@ -103,8 +103,8 @@ for path in "${PUBLIC_PATHS[@]}"; do
   check_path "$path" "200"
 done
 
-check_body_contains "/" "Latest FX Snapshot"
-check_body_contains "/" "Portal"
+check_body_contains "/" "RPQ Fund Live Snapshot"
+check_body_contains "/" "투자자 포탈"
 check_body_contains "/" "/portal/login"
 check_body_contains "/" "/admin/investors"
 check_body_contains "/" "/admin/unit-price"
@@ -126,7 +126,8 @@ fi
 
 if [[ -n "$LOCAL_APP_URL" ]]; then
   printf 'Local app target: %s (Host: %s)\n' "$LOCAL_APP_URL" "$HOST_HEADER"
-  check_url_body_contains "${LOCAL_APP_URL}/" "Latest FX Snapshot" -H "Host: ${HOST_HEADER}"
+  check_url_body_contains "${LOCAL_APP_URL}/" "RPQ Fund Live Snapshot" -H "Host: ${HOST_HEADER}"
+  check_url_body_contains "${LOCAL_APP_URL}/" "투자자 포탈" -H "Host: ${HOST_HEADER}"
   check_url_body_contains "${LOCAL_APP_URL}/" "/portal/login" -H "Host: ${HOST_HEADER}"
   check_url_body_contains "${LOCAL_APP_URL}/" "/admin/investors" -H "Host: ${HOST_HEADER}"
   check_url_body_contains "${LOCAL_APP_URL}/admin/investors" "Create Investor" -H "Host: ${HOST_HEADER}" -H "X-Admin-User: admin"
