@@ -24,13 +24,8 @@ def _parse_dt(s: str) -> datetime:
     return datetime.fromisoformat(s)
 
 
-def _bucket_asof_5min(dt: datetime) -> datetime:
-    """
-    Floor time to the nearest 5-minute boundary.
-    Example: 12:29:13 -> 12:25:00.
-    """
-    bucket_minute = (dt.minute // 5) * 5
-    return dt.replace(minute=bucket_minute, second=0, microsecond=0)
+def _normalize_asof(dt: datetime) -> datetime:
+    return dt.replace(microsecond=0)
 
 
 def _D(x) -> Decimal:
@@ -76,7 +71,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
 
     try:
         asof_at_raw = _parse_dt(payload.get("asof_at"))
-        asof_at = _bucket_asof_5min(asof_at_raw)
+        asof_at = _normalize_asof(asof_at_raw)
 
         balance = _D(payload.get("balance"))
         equity = _D(payload.get("equity"))
@@ -89,7 +84,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
 
     profit = equity - balance
 
-    # 1) snapshot UPSERT (idempotent on bucketed asof_at)
+    # 1) snapshot UPSERT (idempotent for the exact sender timestamp)
     db.execute(
         text(
             """
@@ -126,7 +121,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
     ).scalar_one()
     total_units = Decimal(str(total_units))
 
-    # 3) unit price UPSERT (same bucketed asof_at)
+    # 3) unit price UPSERT (same sender timestamp)
     unit_price = None
     auto_created = False
     if total_units > 0:
@@ -144,7 +139,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
                 "fid": fx.fund_id,
                 "asof": asof_at,
                 "px": unit_price,
-                "note": f"AUTO bucketed(5min floor) from FX snapshot fx_account_id={fx.id}",
+                "note": f"AUTO from FX snapshot fx_account_id={fx.id}",
             },
         )
         auto_created = True
@@ -156,7 +151,7 @@ async def mt5_snapshot(request: Request, db: Session = Depends(get_db)):
         "fx_account_id": fx.id,
         "fund_id": fx.fund_id,
         "asof_at_raw": payload.get("asof_at"),
-        "asof_at_bucket": asof_at.isoformat(),
+        "asof_at": asof_at.isoformat(),
         "balance": str(balance),
         "equity": str(equity),
         "profit": str(profit),

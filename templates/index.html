@@ -402,7 +402,7 @@
           <div class="mini-grid">
             <div class="mini"><span>Latest</span><strong data-live-latest>{{ snap.asof_at.strftime('%H:%M %Z') if snap.asof_at else '-' }}</strong></div>
             <div class="mini"><span>Previous</span><strong data-live-previous>{{ metrics.previous_equity or '-' }}</strong></div>
-            <div class="mini"><span>5-min change</span><strong data-live-change>{{ metrics.equity_change or '-' }}</strong></div>
+            <div class="mini"><span>Latest change</span><strong data-live-change>{{ metrics.equity_change or '-' }}</strong></div>
           </div>
 
           <div class="chart">
@@ -591,7 +591,7 @@
         }
       }
 
-      window.setInterval(refreshSnapshot, 15000);
+      window.setInterval(refreshSnapshot, 5000);
       refreshSnapshot();
     })();
   </script>

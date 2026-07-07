@@ -8,7 +8,7 @@
 input string WebhookUrl = "https://rpqtfund.com/fx/mt5/snapshot";
 input long   FxAccountId = 0;
 input string FxSecret = "";
-input int    SendIntervalSeconds = 300;
+input int    SendIntervalSeconds = 15;
 input bool   DebugMode = false;
 
 datetime g_last_send = 0;
