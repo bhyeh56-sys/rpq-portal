@@ -438,6 +438,7 @@
       var syncEl = document.querySelector("[data-live-sync]");
       var chartArea = document.querySelector("[data-live-chart-area]");
       var chartLine = document.querySelector("[data-live-chart-line]");
+      var lastSnapshotId = null;
 
       function toNumber(value) {
         var next = Number(value);
@@ -519,6 +520,22 @@
         requestAnimationFrame(frame);
       }
 
+      function seedReplayValues(row) {
+        if (!row) return;
+        var balance = toNumber(row.balance);
+        var equity = toNumber(row.equity);
+        var profit = toNumber(row.profit);
+        if (profit === null && equity !== null && balance !== null) profit = equity - balance;
+        var returnRate = profit !== null && balance ? profit / balance * 100 : null;
+        var values = { balance: balance, equity: equity, profit: profit, return_rate: returnRate };
+        numberEls.forEach(function (el) {
+          var value = values[el.dataset.liveNumber];
+          if (value === null || value === undefined) return;
+          el.dataset.current = String(value);
+          el.textContent = formatByKind(value, el.dataset.liveKind);
+        });
+      }
+
       function chartPath(rows) {
         var points = rows.slice().reverse().map(function (row) {
           return toNumber(row.equity);
@@ -548,10 +565,16 @@
         var equityChange = equity !== null && previousEquity !== null ? equity - previousEquity : null;
         var returnRate = profit !== null && balance ? profit / balance * 100 : null;
 
+        var isSameSnapshot = lastSnapshotId !== null && String(latest.id) === String(lastSnapshotId);
+        if (isSameSnapshot && previous) {
+          seedReplayValues(previous);
+        }
+
         var values = { balance: balance, equity: equity, profit: profit, return_rate: returnRate };
         numberEls.forEach(function (el) {
-          animateNumber(el, values[el.dataset.liveNumber], 900);
+          animateNumber(el, values[el.dataset.liveNumber], isSameSnapshot ? 1250 : 900);
         });
+        lastSnapshotId = latest.id;
 
         if (asofEl) {
           asofEl.textContent = "MT5 account snapshot · fx_account_id " + latest.fx_account_id + " · " + formatTime(latest.asof_at, true);
@@ -591,7 +614,7 @@
         }
       }
 
-      window.setInterval(refreshSnapshot, 5000);
+      window.setInterval(refreshSnapshot, 3000);
       refreshSnapshot();
     })();
   </script>
