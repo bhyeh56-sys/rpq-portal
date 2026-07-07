@@ -176,6 +176,30 @@
     }
     .label { color: #9ca3af; font-size: 14px; }
     .value { margin-top: 8px; font-size: 26px; line-height: 1; font-weight: 800; }
+    .value, .return-value, .mini strong, .subvalue, .brand span {
+      font-variant-numeric: tabular-nums;
+    }
+    .value, .return-value {
+      transition: color .35s ease, transform .35s ease, text-shadow .35s ease;
+      will-change: transform;
+    }
+    .value.is-live-pulse, .return-value.is-live-pulse {
+      color: #38bdf8;
+      transform: scale(1.025);
+      text-shadow: 0 0 28px rgba(56,189,248,.36);
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #38bdf8;
+      box-shadow: 0 0 0 0 rgba(56,189,248,.62);
+      animation: livePulse 1.7s ease-out infinite;
+    }
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(56,189,248,.62); }
+      100% { box-shadow: 0 0 0 12px rgba(56,189,248,0); }
+    }
     .hint { margin: 6px 0 0; color: #6b7280; font-size: 12px; }
     .subvalue { margin-top: 4px; color: #9ca3af; font-size: 13px; }
     .sky { color: #38bdf8; }
@@ -307,7 +331,7 @@
         </nav>
         <div class="brand">
           <strong>RPQ Fund Live Snapshot</strong>
-          <span>
+          <span data-live-asof>
             MT5 account snapshot · fx_account_id {{ snap.fx_account_id if snap else fx_account_id|default(1) }}
             {% if snap and snap.asof_at %} · {{ snap.asof_at.strftime('%Y-%m-%d %H:%M %Z') }}{% endif %}
           </span>
@@ -324,7 +348,7 @@
                 <path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
             </div>
-            <div class="value sky">{{ metrics.balance or '-' }}</div>
+            <div class="value sky" data-live-number="balance" data-live-kind="money" data-current="{{ snap.balance if snap else '' }}">{{ metrics.balance or '-' }}</div>
             <p class="hint">Latest deposited account baseline</p>
           </article>
 
@@ -335,7 +359,7 @@
                 <path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path>
               </svg>
             </div>
-            <div class="value emerald">{{ metrics.equity or '-' }}</div>
+            <div class="value emerald" data-live-number="equity" data-live-kind="money" data-current="{{ snap.equity if snap else '' }}">{{ metrics.equity or '-' }}</div>
             <p class="hint">Latest MT5 equity snapshot</p>
           </article>
 
@@ -346,7 +370,7 @@
                 <path d="M12 3v18"></path><path d="m17 8-5-5-5 5"></path><path d="M5 21h14"></path>
               </svg>
             </div>
-            <div class="value indigo">{{ metrics.profit or '-' }}</div>
+            <div class="value indigo" data-live-number="profit" data-live-kind="money" data-current="{{ snap.profit if snap else '' }}">{{ metrics.profit or '-' }}</div>
             <p class="hint">Equity minus balance</p>
           </article>
         </div>
@@ -354,6 +378,7 @@
         <article class="card main">
           <div class="topbar">
             <div class="live">
+              <span class="live-dot" aria-hidden="true"></span>
               <svg class="icon sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
               </svg>
@@ -370,14 +395,14 @@
 
           <div class="return-block">
             <div class="eyebrow">Snapshot Return Rate</div>
-            <div class="return-value">{{ metrics.return_rate or '-' }}</div>
-            <div class="subvalue">profit {{ metrics.profit or '-' }} / balance {{ metrics.balance or '-' }}</div>
+            <div class="return-value" data-live-number="return_rate" data-live-kind="pct" data-current="{{ ((snap.profit / snap.balance * 100) if snap and snap.balance else '') }}">{{ metrics.return_rate or '-' }}</div>
+            <div class="subvalue" data-live-subvalue>profit {{ metrics.profit or '-' }} / balance {{ metrics.balance or '-' }}</div>
           </div>
 
           <div class="mini-grid">
-            <div class="mini"><span>Latest</span><strong>{{ snap.asof_at.strftime('%H:%M %Z') if snap.asof_at else '-' }}</strong></div>
-            <div class="mini"><span>Previous</span><strong>{{ metrics.previous_equity or '-' }}</strong></div>
-            <div class="mini"><span>5-min change</span><strong>{{ metrics.equity_change or '-' }}</strong></div>
+            <div class="mini"><span>Latest</span><strong data-live-latest>{{ snap.asof_at.strftime('%H:%M %Z') if snap.asof_at else '-' }}</strong></div>
+            <div class="mini"><span>Previous</span><strong data-live-previous>{{ metrics.previous_equity or '-' }}</strong></div>
+            <div class="mini"><span>5-min change</span><strong data-live-change>{{ metrics.equity_change or '-' }}</strong></div>
           </div>
 
           <div class="chart">
@@ -388,8 +413,8 @@
                   <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"></stop>
                 </linearGradient>
               </defs>
-              <path d="{{ metrics.chart_path }} L 300 100 L 0 100 Z" fill="url(#gradient)"></path>
-              <path d="{{ metrics.chart_path }}" fill="none" stroke="#38bdf8" stroke-width="2"></path>
+              <path data-live-chart-area d="{{ metrics.chart_path }} L 300 100 L 0 100 Z" fill="url(#gradient)"></path>
+              <path data-live-chart-line d="{{ metrics.chart_path }}" fill="none" stroke="#38bdf8" stroke-width="2"></path>
             </svg>
           </div>
         </article>
@@ -402,11 +427,161 @@
     </div>
   </main>
   <script>
-    window.setInterval(function () {
-      if (document.visibilityState === "visible") {
-        window.location.reload();
+    (function () {
+      var fxAccountId = {{ fx_account_id|default(1) }};
+      var numberEls = Array.prototype.slice.call(document.querySelectorAll("[data-live-number]"));
+      var asofEl = document.querySelector("[data-live-asof]");
+      var latestEl = document.querySelector("[data-live-latest]");
+      var previousEl = document.querySelector("[data-live-previous]");
+      var changeEl = document.querySelector("[data-live-change]");
+      var subvalueEl = document.querySelector("[data-live-subvalue]");
+      var chartArea = document.querySelector("[data-live-chart-area]");
+      var chartLine = document.querySelector("[data-live-chart-line]");
+
+      function toNumber(value) {
+        var next = Number(value);
+        return Number.isFinite(next) ? next : null;
       }
-    }, 60000);
+
+      function money(value) {
+        if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+        var sign = value < 0 ? "-" : "";
+        return sign + "$" + Math.abs(value).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+
+      function pct(value) {
+        if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+        var sign = value >= 0 ? "+" : "";
+        return sign + value.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) + "%";
+      }
+
+      function formatByKind(value, kind) {
+        return kind === "pct" ? pct(value) : money(value);
+      }
+
+      function formatTime(value, longForm) {
+        if (!value) return "-";
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        var parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Seoul",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }).formatToParts(date).reduce(function (acc, part) {
+          acc[part.type] = part.value;
+          return acc;
+        }, {});
+        var time = parts.hour + ":" + parts.minute + " UTC+09:00";
+        return longForm ? parts.year + "-" + parts.month + "-" + parts.day + " " + time : time;
+      }
+
+      function animateNumber(el, next, duration) {
+        if (!el || next === null) return;
+        var current = toNumber(el.dataset.current);
+        if (current === null) current = next;
+        if (Math.abs(current - next) < 0.0001) {
+          el.textContent = formatByKind(next, el.dataset.liveKind);
+          el.dataset.current = String(next);
+          return;
+        }
+
+        var startedAt = performance.now();
+        var kind = el.dataset.liveKind;
+        el.classList.add("is-live-pulse");
+
+        function frame(now) {
+          var progress = Math.min((now - startedAt) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          var value = current + (next - current) * eased;
+          el.textContent = formatByKind(value, kind);
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            el.textContent = formatByKind(next, kind);
+            el.dataset.current = String(next);
+            window.setTimeout(function () {
+              el.classList.remove("is-live-pulse");
+            }, 420);
+          }
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      function chartPath(rows) {
+        var points = rows.slice().reverse().map(function (row) {
+          return toNumber(row.equity);
+        }).filter(function (value) {
+          return value !== null;
+        });
+        if (points.length < 2) return "M 0 74 L 300 74";
+        var low = Math.min.apply(null, points);
+        var high = Math.max.apply(null, points);
+        var span = high - low || 1;
+        return "M " + points.map(function (value, index) {
+          var x = 300 * index / (points.length - 1);
+          var y = 78 - ((value - low) / span * 42);
+          return x.toFixed(1) + " " + y.toFixed(1);
+        }).join(" L ");
+      }
+
+      function applySnapshot(rows) {
+        if (!rows || !rows.length) return;
+        var latest = rows[0];
+        var previous = rows[1] || null;
+        var balance = toNumber(latest.balance);
+        var equity = toNumber(latest.equity);
+        var profit = toNumber(latest.profit);
+        if (profit === null && equity !== null && balance !== null) profit = equity - balance;
+        var previousEquity = previous ? toNumber(previous.equity) : null;
+        var equityChange = equity !== null && previousEquity !== null ? equity - previousEquity : null;
+        var returnRate = profit !== null && balance ? profit / balance * 100 : null;
+
+        var values = { balance: balance, equity: equity, profit: profit, return_rate: returnRate };
+        numberEls.forEach(function (el) {
+          animateNumber(el, values[el.dataset.liveNumber], 900);
+        });
+
+        if (asofEl) {
+          asofEl.textContent = "MT5 account snapshot · fx_account_id " + latest.fx_account_id + " · " + formatTime(latest.asof_at, true);
+        }
+        if (latestEl) latestEl.textContent = formatTime(latest.asof_at, false);
+        if (previousEl) previousEl.textContent = money(previousEquity);
+        if (changeEl) changeEl.textContent = money(equityChange);
+        if (subvalueEl) subvalueEl.textContent = "profit " + money(profit) + " / balance " + money(balance);
+
+        var path = chartPath(rows);
+        if (chartLine) chartLine.setAttribute("d", path);
+        if (chartArea) chartArea.setAttribute("d", path + " L 300 100 L 0 100 Z");
+      }
+
+      async function refreshSnapshot() {
+        if (document.visibilityState !== "visible") return;
+        try {
+          var response = await fetch("/fx/snapshots/recent?fx_account_id=" + encodeURIComponent(fxAccountId) + "&limit=12", {
+            cache: "no-store"
+          });
+          if (!response.ok) return;
+          var payload = await response.json();
+          applySnapshot(payload.items || []);
+        } catch (error) {
+          console.warn("snapshot refresh failed", error);
+        }
+      }
+
+      window.setInterval(refreshSnapshot, 15000);
+      refreshSnapshot();
+    })();
   </script>
 </body>
 </html>
