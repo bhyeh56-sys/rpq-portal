@@ -389,7 +389,7 @@
                 <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
                 <path d="m9 12 2 2 4-4"></path>
               </svg>
-              <span>Verified Live</span>
+              <span data-live-sync>Syncing...</span>
             </div>
           </div>
 
@@ -435,6 +435,7 @@
       var previousEl = document.querySelector("[data-live-previous]");
       var changeEl = document.querySelector("[data-live-change]");
       var subvalueEl = document.querySelector("[data-live-subvalue]");
+      var syncEl = document.querySelector("[data-live-sync]");
       var chartArea = document.querySelector("[data-live-chart-area]");
       var chartLine = document.querySelector("[data-live-chart-line]");
 
@@ -566,15 +567,26 @@
       }
 
       async function refreshSnapshot() {
-        if (document.visibilityState !== "visible") return;
         try {
           var response = await fetch("/fx/snapshots/recent?fx_account_id=" + encodeURIComponent(fxAccountId) + "&limit=12", {
             cache: "no-store"
           });
-          if (!response.ok) return;
+          if (!response.ok) {
+            if (syncEl) syncEl.textContent = "Sync " + response.status;
+            return;
+          }
           var payload = await response.json();
           applySnapshot(payload.items || []);
+          if (syncEl) {
+            syncEl.textContent = "Synced " + new Date().toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false
+            });
+          }
         } catch (error) {
+          if (syncEl) syncEl.textContent = "Sync failed";
           console.warn("snapshot refresh failed", error);
         }
       }
