@@ -3,7 +3,7 @@
 //| Sends signed MT5 account snapshots to the RPQ webhook.            |
 //+------------------------------------------------------------------+
 #property strict
-#property version "1.01"
+#property version "1.02"
 
 input string WebhookUrl = "https://rpqtfund.com/fx/mt5/snapshot";
 input long   FxAccountId = 0;
@@ -12,6 +12,7 @@ input int    SnapshotIntervalSeconds = 15;
 input bool   DebugMode = false;
 
 bool g_hmac_selftest_ok = true;
+datetime g_last_send = 0;
 
 uint K[64] =
 {
@@ -350,14 +351,36 @@ bool SendSnapshot()
    return true;
 }
 
-int OnInit()
+int EffectiveIntervalSeconds()
 {
    int interval = SnapshotIntervalSeconds;
    if(interval < 1)
       interval = 1;
+   return interval;
+}
+
+void TrySendSnapshot(const string source)
+{
+   datetime now = TimeCurrent();
+   int interval = EffectiveIntervalSeconds();
+
+   if(g_last_send != 0 && (now - g_last_send) < interval)
+      return;
+
+   if(DebugMode)
+      PrintFormat("RPQ debug: send attempt source=%s interval=%d seconds_since_last=%d",
+                  source, interval, (int)(g_last_send == 0 ? -1 : now - g_last_send));
+
+   if(SendSnapshot())
+      g_last_send = now;
+}
+
+int OnInit()
+{
+   int interval = EffectiveIntervalSeconds();
    EventSetTimer(interval);
-   PrintFormat("RPQSnapshotSender started. interval=%d seconds url=%s fx_account_id=%s",
-               interval, WebhookUrl, IntegerToString(FxAccountId));
+   PrintFormat("RPQSnapshotSender v1.02 started. SnapshotIntervalSeconds=%d timer=%d url=%s fx_account_id=%s",
+               SnapshotIntervalSeconds, interval, WebhookUrl, IntegerToString(FxAccountId));
 
    if(DebugMode)
    {
@@ -370,7 +393,7 @@ int OnInit()
       }
    }
 
-   SendSnapshot();
+   TrySendSnapshot("init");
    return INIT_SUCCEEDED;
 }
 
@@ -382,5 +405,10 @@ void OnDeinit(const int reason)
 
 void OnTimer()
 {
-   SendSnapshot();
+   TrySendSnapshot("timer");
+}
+
+void OnTick()
+{
+   TrySendSnapshot("tick");
 }

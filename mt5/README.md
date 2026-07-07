@@ -14,6 +14,14 @@ https://rpqtfund.com/fx/mt5/snapshot
 4. Open MetaEditor, compile `RPQSnapshotSender.mq5`.
 5. Attach the EA to a chart.
 
+After attaching the EA, the Experts log should show:
+
+```text
+RPQSnapshotSender v1.02 started. SnapshotIntervalSeconds=15
+```
+
+If the log still shows an older version or `SendIntervalSeconds`, remove the EA from the chart, recompile the new file, and attach it again.
+
 ## Inputs
 
 - `WebhookUrl`: default `https://rpqtfund.com/fx/mt5/snapshot`
