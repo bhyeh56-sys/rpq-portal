@@ -245,6 +245,38 @@
       text-transform: uppercase;
       letter-spacing: .01em;
     }
+    .period-tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px;
+      border: 1px solid rgba(148,163,184,.24);
+      border-radius: 999px;
+      background: rgba(15,23,42,.62);
+      position: relative;
+      z-index: 1;
+    }
+    .period-tab {
+      min-width: 42px;
+      height: 28px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #94a3b8;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+    }
+    .period-tab:hover { color: #e5e7eb; }
+    .period-tab.is-active {
+      background: #38bdf8;
+      color: #06111f;
+      box-shadow: 0 8px 22px rgba(56,189,248,.24);
+    }
     .return-block { margin: 14px 0 10px; position: relative; z-index: 1; }
     .eyebrow {
       margin-bottom: 4px;
@@ -299,6 +331,7 @@
       .entry-grid { grid-template-columns: 1fr; gap: 18px; }
       .dashboard { grid-template-columns: 1fr; height: auto; max-height: none; }
       .mini-grid { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -391,6 +424,11 @@
               </svg>
               <span data-live-sync>Syncing...</span>
             </div>
+            <div class="period-tabs" aria-label="Snapshot chart period">
+              <button class="period-tab is-active" type="button" data-chart-period="1d">1D</button>
+              <button class="period-tab" type="button" data-chart-period="1h">1H</button>
+              <button class="period-tab" type="button" data-chart-period="5m">5M</button>
+            </div>
           </div>
 
           <div class="return-block">
@@ -438,6 +476,8 @@
       var syncEl = document.querySelector("[data-live-sync]");
       var chartArea = document.querySelector("[data-live-chart-area]");
       var chartLine = document.querySelector("[data-live-chart-line]");
+      var periodButtons = Array.prototype.slice.call(document.querySelectorAll("[data-chart-period]"));
+      var activePeriod = "1d";
       var lastSnapshotId = null;
 
       function toNumber(value) {
@@ -589,9 +629,16 @@
         if (chartArea) chartArea.setAttribute("d", path + " L 300 100 L 0 100 Z");
       }
 
+      function setActivePeriod(period) {
+        activePeriod = period || "1d";
+        periodButtons.forEach(function (button) {
+          button.classList.toggle("is-active", button.dataset.chartPeriod === activePeriod);
+        });
+      }
+
       async function refreshSnapshot() {
         try {
-          var response = await fetch("/fx/snapshots/recent?fx_account_id=" + encodeURIComponent(fxAccountId) + "&limit=12", {
+          var response = await fetch("/fx/snapshots/recent?fx_account_id=" + encodeURIComponent(fxAccountId) + "&period=" + encodeURIComponent(activePeriod), {
             cache: "no-store"
           });
           if (!response.ok) {
@@ -614,6 +661,13 @@
         }
       }
 
+      periodButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          setActivePeriod(button.dataset.chartPeriod);
+          refreshSnapshot();
+        });
+      });
+      setActivePeriod(activePeriod);
       window.setInterval(refreshSnapshot, 3000);
       refreshSnapshot();
     })();

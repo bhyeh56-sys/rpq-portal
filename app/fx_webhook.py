@@ -183,7 +183,42 @@ def latest_snapshot(fx_account_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/snapshots/recent")
-def recent_snapshots(fx_account_id: int, limit: int = 20, db: Session = Depends(get_db)):
+def recent_snapshots(
+    fx_account_id: int,
+    limit: int = 20,
+    period: str | None = None,
+    db: Session = Depends(get_db),
+):
+    period_seconds = {
+        "5m": 5 * 60,
+        "1h": 60 * 60,
+        "1d": 24 * 60 * 60,
+    }
+
+    if period:
+        normalized_period = period.strip().lower()
+        if normalized_period not in period_seconds:
+            raise HTTPException(status_code=400, detail="period must be one of 5m, 1h, 1d")
+
+        rows = db.execute(
+            text(
+                """
+                select id, fx_account_id, asof_at, balance, equity, profit
+                from fx_account_snapshots
+                where fx_account_id = :fxid
+                  and asof_at >= now() - (:seconds * interval '1 second')
+                order by asof_at desc
+                """
+            ),
+            {"fxid": fx_account_id, "seconds": period_seconds[normalized_period]},
+        ).mappings().all()
+
+        return {
+            "count": len(rows),
+            "period": normalized_period,
+            "items": [dict(r) for r in rows],
+        }
+
     limit = max(1, min(int(limit), 200))
     rows = db.execute(
         text(
