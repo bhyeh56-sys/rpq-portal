@@ -3,15 +3,14 @@
 //| Sends signed MT5 account snapshots to the RPQ webhook.            |
 //+------------------------------------------------------------------+
 #property strict
-#property version "1.00"
+#property version "1.01"
 
 input string WebhookUrl = "https://rpqtfund.com/fx/mt5/snapshot";
 input long   FxAccountId = 0;
 input string FxSecret = "";
-input int    SendIntervalSeconds = 15;
+input int    SnapshotIntervalSeconds = 15;
 input bool   DebugMode = false;
 
-datetime g_last_send = 0;
 bool g_hmac_selftest_ok = true;
 
 uint K[64] =
@@ -353,7 +352,7 @@ bool SendSnapshot()
 
 int OnInit()
 {
-   int interval = SendIntervalSeconds;
+   int interval = SnapshotIntervalSeconds;
    if(interval < 1)
       interval = 1;
    EventSetTimer(interval);
@@ -371,8 +370,7 @@ int OnInit()
       }
    }
 
-   if(SendSnapshot())
-      g_last_send = TimeCurrent();
+   SendSnapshot();
    return INIT_SUCCEEDED;
 }
 
@@ -384,14 +382,5 @@ void OnDeinit(const int reason)
 
 void OnTimer()
 {
-   datetime now = TimeCurrent();
-   int interval = SendIntervalSeconds;
-   if(interval < 1)
-      interval = 1;
-
-   if(g_last_send != 0 && (now - g_last_send) < interval)
-      return;
-
-   if(SendSnapshot())
-      g_last_send = now;
+   SendSnapshot();
 }

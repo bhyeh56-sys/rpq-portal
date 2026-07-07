@@ -19,7 +19,7 @@ https://rpqtfund.com/fx/mt5/snapshot
 - `WebhookUrl`: default `https://rpqtfund.com/fx/mt5/snapshot`
 - `FxAccountId`: the server-side `fx_accounts.id`
 - `FxSecret`: the server-side secret for that FX account
-- `SendIntervalSeconds`: send interval in seconds, default `15`
+- `SnapshotIntervalSeconds`: send interval in seconds, default `15`
 - `DebugMode`: when `true`, prints signing diagnostics without printing the secret or body
 
 Do not paste `FxSecret` into logs, screenshots, or shared config exports.
