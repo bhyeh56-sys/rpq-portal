@@ -1,18 +1,22 @@
 <!doctype html>
-<html lang="ko">
+<html lang="{{ lang|default('en') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Global Prime GP Copy | RedPine Quant</title>
   <style>
-    :root { --ink:#17201b; --muted:#5f6b63; --line:#d9e0da; --pine:#173f31; --leaf:#2f7d58; --soft:#f3f7f1; --warn:#8a4b18; }
+    :root { --ink:#17201b; --muted:#5f6b63; --line:#d9e0da; --pine:#173f31; --soft:#f3f7f1; --warn:#8a4b18; }
     * { box-sizing:border-box; }
     body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:#fbfcfa; line-height:1.65; }
     a { color:var(--pine); text-decoration:none; }
     header { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:2; }
     .nav { max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
     .brand { font-weight:800; }
+    .right { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:flex-end; }
     .links { display:flex; gap:16px; flex-wrap:wrap; font-size:15px; }
+    .lang { display:flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:999px; padding:3px; background:#f8faf7; }
+    .lang a { min-width:36px; padding:4px 9px; border-radius:999px; text-align:center; color:var(--muted); font-size:13px; font-weight:800; }
+    .lang a.active { background:var(--pine); color:#fff; }
     main { max-width:1120px; margin:0 auto; padding:42px 20px 72px; }
     h1 { font-size:clamp(34px,5vw,58px); line-height:1.06; margin:0 0 16px; letter-spacing:0; }
     h2 { font-size:25px; margin:0 0 12px; line-height:1.2; }
@@ -34,105 +38,64 @@
     .faq dd { margin:4px 0 0; color:var(--muted); }
     footer { border-top:1px solid var(--line); padding:24px 20px; color:var(--muted); }
     .foot { max-width:1120px; margin:0 auto; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
-    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } main { padding-top:28px; } }
+    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } .right { justify-content:flex-start; } main { padding-top:28px; } }
   </style>
 </head>
 <body>
   <header>
     <nav class="nav" aria-label="Primary">
-      <a class="brand" href="/">RedPine Quant</a>
-      <div class="links">
-        <a href="/copy">GP Copy</a>
-        <a href="/risk">Risk</a>
-        <a href="/faq">FAQ</a>
-        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      <a class="brand" href="/?lang={{ lang }}">RedPine Quant</a>
+      <div class="right">
+        <div class="links">
+          <a href="/copy?lang={{ lang }}">GP Copy</a>
+          <a href="/risk?lang={{ lang }}">Risk</a>
+          <a href="/faq?lang={{ lang }}">FAQ</a>
+          <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+        </div>
+        <div class="lang" aria-label="Language">
+          <a class="{% if lang == 'en' %}active{% endif %}" href="/copy?lang=en">EN</a>
+          <a class="{% if lang == 'ko' %}active{% endif %}" href="/copy?lang=ko">KO</a>
+        </div>
       </div>
     </nav>
   </header>
 
   <main>
-    <section class="hero">
-      <h1>Global Prime GP Copy 안내</h1>
-      <p class="lead">RedPine Quant 전략 계좌의 거래를 Global Prime GP Copy 인프라를 통해 투자자 본인 명의 계좌에 복사하는 방식에 대한 공개 안내입니다.</p>
-    </section>
-
-    <div class="sections">
-      <section class="card soft">
-        <h2>Strategy Overview</h2>
-        <p>RedPine Quant는 FX/CFD 시장에서 규칙 기반 진입, 포지션 관리, 리스크 한도를 결합한 전략 운용을 연구합니다.</p>
-        <p>본 페이지는 전략 구조와 카피 방식의 이해를 돕기 위한 일반 정보입니다. 본 페이지는 개인별 투자자문이 아닙니다.</p>
+    {% if lang == 'ko' %}
+      <section class="hero">
+        <h1>Global Prime GP Copy 안내</h1>
+        <p class="lead">RedPine Quant 전략 계좌의 거래를 투자자 본인 명의의 Global Prime 계좌에 복제하는 구조를 설명합니다. 자금은 RedPine Quant로 송금하지 않습니다.</p>
       </section>
-
-      <section class="card">
-        <h2>How Global Prime GP Copy Works</h2>
-        <ul>
-          <li>투자자는 자금을 RedPine Quant에 송금하지 않는다.</li>
-          <li>투자자는 본인 명의 Global Prime 계좌를 사용한다.</li>
-          <li>Global Prime GP Copy를 통해 전략 계좌의 거래가 투자자 계좌에 복사된다.</li>
-          <li>카피 여부, 투자금 규모, 중단 여부는 투자자 본인이 결정한다.</li>
-        </ul>
+      <div class="sections">
+        <section class="card soft"><h2>구조 요약</h2><p>투자자는 본인 명의의 브로커 계좌를 사용하고, GP Copy 설정을 통해 전략 계좌의 거래가 비례 복제됩니다. 복제 여부, 자금 규모, 중단 여부는 투자자가 직접 관리합니다.</p></section>
+        <section class="card"><h2>진행 흐름</h2><ul><li>Global Prime 계좌 개설 및 본인 확인</li><li>GP Copy 연결 조건 확인</li><li>복제 비율과 위험 허용 수준 설정</li><li>거래 내역과 계좌 상태 모니터링</li><li>필요 시 투자자가 직접 복제 중단</li></ul></section>
+        <section class="card"><h2>성과 확인</h2><p>성과 자료가 공개되는 경우 Myfxbook 또는 FXBlue 등 외부 모니터링 링크로 확인할 수 있습니다.</p><p>{% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}{% if myfxbook_url and fxblue_url %} · {% endif %}{% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}{% if not myfxbook_url and not fxblue_url %}<span class="muted">현재 공개 성과 링크가 설정되어 있지 않습니다.</span>{% endif %}</p></section>
+        <section class="card"><h2>비용과 중단</h2><p>브로커 수수료, 스프레드, 복제 서비스 조건, 성과 관련 비용은 계좌 조건에 따라 달라질 수 있습니다. 실제 적용 조건은 참여 전 최신 문서로 확인해야 합니다.</p></section>
+        <section class="card risk"><h2>주요 위험</h2><p>FX/CFD 거래는 레버리지, 슬리피지, 유동성 부족, 브로커 장애, VPS/네트워크 장애, EA 오류, 급격한 시장 변동으로 손실이 발생할 수 있습니다. 복제 계좌의 결과는 전략 계좌와 다를 수 있습니다.</p></section>
+        <section class="card faq"><h2>FAQ</h2><dl><dt>RedPine Quant가 자금을 직접 받습니까?</dt><dd>아닙니다. 투자자는 본인 명의의 브로커 계좌를 사용합니다.</dd><dt>복제를 멈출 수 있습니까?</dt><dd>복제 중단과 계좌 관리는 투자자가 직접 결정합니다.</dd><dt>성과는 보장됩니까?</dt><dd>아닙니다. 과거 성과는 미래 결과를 보장하지 않습니다.</dd></dl></section>
+        <section class="card"><h2>다음 단계</h2><p>계좌 조건과 위험을 검토한 뒤 문의하거나 브로커의 GP Copy 절차를 확인하십시오.</p><div class="actions">{% if copy_link_configured %}<a class="button primary" href="{{ global_prime_copy_url }}" rel="noopener noreferrer">Open Global Prime GP Copy</a>{% else %}<span class="button disabled" aria-disabled="true">Copy link is not configured</span>{% endif %}<a class="button" href="mailto:{{ contact_email }}">Contact RedPine Quant</a></div></section>
+      </div>
+    {% else %}
+      <section class="hero">
+        <h1>Global Prime GP Copy Guide</h1>
+        <p class="lead">This page explains how trades from a RedPine Quant strategy account may be copied into an investor-owned Global Prime account. Funds are not transferred to RedPine Quant.</p>
       </section>
-
-      <section class="card">
-        <h2>Track Record</h2>
-        <p>성과 기록은 가능한 경우 외부 모니터링 링크를 통해 확인할 수 있습니다.</p>
-        <p>
-          {% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}
-          {% if myfxbook_url and fxblue_url %} · {% endif %}
-          {% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}
-          {% if not myfxbook_url and not fxblue_url %}<span class="muted">현재 공개 성과 링크가 설정되어 있지 않습니다.</span>{% endif %}
-        </p>
-        <p class="muted">과거 성과는 미래 수익을 보장하지 않습니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Risk Management</h2>
-        <p>전략은 포지션 크기, 시장 변동성, 계좌 상태를 고려해 리스크를 관리하도록 설계됩니다. 다만 모든 리스크를 제거할 수는 없습니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Fees</h2>
-        <p>브로커, 플랫폼, 카피 서비스 또는 전략 제공과 관련된 비용은 적용 조건에 따라 달라질 수 있습니다.</p>
-        <p class="muted">실제 비용 구조는 가입 전 최신 안내와 계좌 조건을 확인해야 합니다.</p>
-      </section>
-
-      <section class="card risk">
-        <h2>Risk Disclosure</h2>
-        <p>FX/CFD 거래는 레버리지로 인해 원금 손실 가능성이 큰 고위험 거래다. 슬리피지, 유동성 부족, 브로커 장애, 네트워크 장애, EA 오류, 급변장으로 인해 예상과 다른 체결 또는 손실이 발생할 수 있습니다.</p>
-        <p>과거 성과는 미래 수익을 보장하지 않는다. 본 페이지는 개인별 투자자문이 아니다.</p>
-      </section>
-
-      <section class="card faq">
-        <h2>FAQ</h2>
-        <dl>
-          <dt>RedPine Quant가 투자금을 직접 받나요?</dt>
-          <dd>아니요. 투자자는 자금을 RedPine Quant에 송금하지 않고 본인 명의 브로커 계좌를 사용합니다.</dd>
-          <dt>카피를 멈출 수 있나요?</dt>
-          <dd>카피 여부와 중단 여부는 투자자 본인이 결정합니다.</dd>
-          <dt>성과는 어디에서 확인하나요?</dt>
-          <dd>설정된 경우 Myfxbook 또는 FXBlue 링크를 통해 확인할 수 있습니다.</dd>
-        </dl>
-      </section>
-
-      <section class="card">
-        <h2>CTA</h2>
-        <p>Global Prime GP Copy 페이지에서 브로커 측 절차와 최신 조건을 확인하세요.</p>
-        <div class="actions">
-          {% if copy_link_configured %}
-            <a class="button primary" href="{{ global_prime_copy_url }}" rel="noopener noreferrer">Open Global Prime GP Copy</a>
-          {% else %}
-            <span class="button disabled" aria-disabled="true">Copy link is not configured</span>
-          {% endif %}
-          <a class="button" href="mailto:{{ contact_email }}">Contact RedPine Quant</a>
-        </div>
-      </section>
-    </div>
+      <div class="sections">
+        <section class="card soft"><h2>Structure Overview</h2><p>The investor uses an account in their own name. GP Copy can copy trades from the strategy account into that account, subject to broker settings, account conditions, and risk controls.</p></section>
+        <section class="card"><h2>Process</h2><ul><li>Open and verify a Global Prime account.</li><li>Review GP Copy connection requirements.</li><li>Set copy ratio and risk tolerance.</li><li>Monitor trading activity and account status.</li><li>Stop copying directly when needed.</li></ul></section>
+        <section class="card"><h2>Track Record</h2><p>When available, performance records may be reviewed through external monitoring links such as Myfxbook or FXBlue.</p><p>{% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}{% if myfxbook_url and fxblue_url %} · {% endif %}{% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}{% if not myfxbook_url and not fxblue_url %}<span class="muted">No public performance link is currently configured.</span>{% endif %}</p></section>
+        <section class="card"><h2>Fees and Exit</h2><p>Broker fees, spreads, copy service terms, and performance-related costs may vary by account condition. Review the latest documents before participating.</p></section>
+        <section class="card risk"><h2>Risk Disclosure</h2><p>FX/CFD trading involves leverage, slippage, liquidity risk, broker outages, VPS or network failures, EA errors, and fast market moves. A copied account can perform differently from the strategy account.</p></section>
+        <section class="card faq"><h2>FAQ</h2><dl><dt>Does RedPine Quant hold investor funds?</dt><dd>No. The investor uses a broker account in their own name.</dd><dt>Can copying be stopped?</dt><dd>Copy settings and account controls are managed by the investor.</dd><dt>Is performance guaranteed?</dt><dd>No. Past performance does not guarantee future results.</dd></dl></section>
+        <section class="card"><h2>Next Step</h2><p>Review the account conditions and risks before contacting RedPine Quant or starting the broker-side GP Copy process.</p><div class="actions">{% if copy_link_configured %}<a class="button primary" href="{{ global_prime_copy_url }}" rel="noopener noreferrer">Open Global Prime GP Copy</a>{% else %}<span class="button disabled" aria-disabled="true">Copy link is not configured</span>{% endif %}<a class="button" href="mailto:{{ contact_email }}">Contact RedPine Quant</a></div></section>
+      </div>
+    {% endif %}
   </main>
 
   <footer>
     <div class="foot">
       <span>© RedPine Quant</span>
-      <span><a href="/">Home</a> · <a href="/risk">Risk</a> · <a href="/faq">FAQ</a></span>
+      <span><a href="/?lang={{ lang }}">Home</a> · <a href="/risk?lang={{ lang }}">Risk</a> · <a href="/faq?lang={{ lang }}">FAQ</a></span>
     </div>
   </footer>
 </body>

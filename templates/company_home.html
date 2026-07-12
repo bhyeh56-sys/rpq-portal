@@ -1,101 +1,116 @@
 <!doctype html>
-<html lang="ko">
+<html lang="{{ lang|default('en') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>RedPine Quant</title>
   <style>
     :root { color-scheme: light; --ink:#17201b; --muted:#5f6b63; --line:#d9e0da; --pine:#173f31; --leaf:#2f7d58; --soft:#f3f7f1; --warn:#8a4b18; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:#fbfcfa; line-height:1.6; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); background:#fbfcfa; line-height:1.6; }
     a { color:var(--pine); text-decoration:none; }
     header { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:2; }
     .nav { max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
     .brand { font-weight:800; letter-spacing:.02em; }
+    .right { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:flex-end; }
     .links { display:flex; gap:16px; flex-wrap:wrap; font-size:15px; }
+    .lang { display:flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:999px; padding:3px; background:#f8faf7; }
+    .lang a { min-width:36px; padding:4px 9px; border-radius:999px; text-align:center; color:var(--muted); font-size:13px; font-weight:800; }
+    .lang a.active { background:var(--pine); color:#fff; }
     main { max-width:1120px; margin:0 auto; padding:54px 20px 72px; }
     .hero { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr); gap:34px; align-items:center; }
     h1 { font-size:clamp(38px,6vw,66px); line-height:1.04; margin:0 0 18px; letter-spacing:0; }
     h2 { font-size:27px; line-height:1.2; margin:0 0 12px; }
     h3 { margin:0 0 8px; font-size:18px; }
     p { margin:0 0 14px; }
-    .lead { font-size:20px; color:var(--muted); max-width:740px; }
-    .actions { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px; margin-top:28px; }
+    .lead { font-size:20px; color:var(--muted); max-width:760px; }
+    .actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:28px; }
     .button { display:flex; flex-direction:column; gap:4px; min-height:78px; justify-content:center; padding:14px 16px; border-radius:8px; border:1px solid var(--pine); font-weight:800; }
     .button span { display:block; color:inherit; font-weight:500; font-size:14px; }
     .primary { background:var(--pine); color:#fff; }
     .secondary { background:#fff; color:var(--pine); }
     .panel { border:1px solid var(--line); background:var(--soft); border-radius:8px; padding:22px; }
-    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px; margin-top:40px; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:40px; }
     .card { border:1px solid var(--line); background:#fff; border-radius:8px; padding:20px; }
     .muted { color:var(--muted); }
     .notice { margin-top:36px; border-left:4px solid var(--warn); padding:14px 16px; background:#fff8ef; color:#4f2b0e; }
     footer { border-top:1px solid var(--line); padding:24px 20px; color:var(--muted); }
     .foot { max-width:1120px; margin:0 auto; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
-    @media (max-width:760px) { .hero,.grid,.actions { grid-template-columns:1fr; } .nav { align-items:flex-start; flex-direction:column; } main { padding-top:34px; } }
+    @media (max-width:760px) { .hero,.grid,.actions { grid-template-columns:1fr; } .nav { align-items:flex-start; flex-direction:column; } .right { justify-content:flex-start; } main { padding-top:34px; } }
   </style>
 </head>
 <body>
   <header>
     <nav class="nav" aria-label="Primary">
-      <a class="brand" href="/">RedPine Quant</a>
-      <div class="links">
-        <a href="/copy">GP Copy</a>
-        <a href="https://rpqtfund.com">Fund Review</a>
-        <a href="/risk">Risk</a>
-        <a href="/faq">FAQ</a>
-        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      <a class="brand" href="/?lang={{ lang }}">RedPine Quant</a>
+      <div class="right">
+        <div class="links">
+          <a href="/copy?lang={{ lang }}">GP Copy</a>
+          <a href="https://rpqtfund.com">Fund Review</a>
+          <a href="/risk?lang={{ lang }}">Risk</a>
+          <a href="/faq?lang={{ lang }}">FAQ</a>
+          <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+        </div>
+        <div class="lang" aria-label="Language">
+          <a class="{% if lang == 'en' %}active{% endif %}" href="/?lang=en">EN</a>
+          <a class="{% if lang == 'ko' %}active{% endif %}" href="/?lang=ko">KO</a>
+        </div>
       </div>
     </nav>
   </header>
 
   <main>
-    <section class="hero">
-      <div>
-        <h1>RedPine Quant</h1>
-        <p class="lead">RedPine Quant researches systematic trading, risk controls, and execution infrastructure for FX/CFD strategies. Visitors can review the Global Prime copy structure or continue to the RPQ Portal for fund-style participation review.</p>
-        <div class="actions">
-          <a class="button primary" href="/copy">
-            카피트레이딩
-            <span>Global Prime GP Copy 안내</span>
-          </a>
-          <a class="button secondary" href="https://rpqtfund.com">
-            투자조합/펀드 참여
-            <span>RPQ Portal로 이동</span>
-          </a>
+    {% if lang == 'ko' %}
+      <section class="hero">
+        <div>
+          <h1>RedPine Quant</h1>
+          <p class="lead">RedPine Quant는 시스템 기반 FX/CFD 전략, 리스크 관리, 실행 인프라를 연구합니다. 방문자는 Global Prime GP Copy 구조를 검토하거나 RPQ Fund 참여 검토 페이지로 이동할 수 있습니다.</p>
+          <div class="actions">
+            <a class="button primary" href="/copy?lang=ko">카피트레이딩 검토<span>Global Prime GP Copy 안내</span></a>
+            <a class="button secondary" href="https://rpqtfund.com">Fund Review<span>RPQ Portal로 이동</span></a>
+          </div>
         </div>
-      </div>
-      <aside class="panel">
-        <h2>Company Overview</h2>
-        <p>Research, execution design, and operational discipline are the center of the RPQ approach.</p>
-        <p class="muted">Public information only. For questions, contact <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
-      </aside>
-    </section>
-
-    <section class="grid" aria-label="Overview">
-      <div class="card">
-        <h3>Research First</h3>
-        <p class="muted">Strategy review starts with market structure, volatility, execution quality, and drawdown controls.</p>
-      </div>
-      <div class="card">
-        <h3>Two Paths</h3>
-        <p class="muted">Visitors may review broker-side copy trading or continue to the independent RPQ Portal site.</p>
-      </div>
-      <div class="card">
-        <h3>Risk Aware</h3>
-        <p class="muted">FX/CFD trading involves leverage and can result in substantial loss of principal.</p>
-      </div>
-    </section>
-
-    <section class="notice">
-      This website provides general information only and is not personal investment advice. Past performance does not guarantee future results.
-    </section>
+        <aside class="panel">
+          <h2>회사 개요</h2>
+          <p>RedPine Quant의 접근은 리서치, 실행 설계, 운영 규율을 중심에 둡니다.</p>
+          <p class="muted">공개 정보 제공 목적입니다. 문의: <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+        </aside>
+      </section>
+      <section class="grid" aria-label="Overview">
+        <div class="card"><h3>Research First</h3><p class="muted">시장 구조, 변동성, 체결 품질, 손실 제한 기준부터 검토합니다.</p></div>
+        <div class="card"><h3>Two Paths</h3><p class="muted">브로커 계좌 기반 카피트레이딩과 Fund 참여 검토 경로를 구분해 안내합니다.</p></div>
+        <div class="card"><h3>Risk Aware</h3><p class="muted">FX/CFD 거래는 레버리지로 인해 원금 손실 위험이 큽니다.</p></div>
+      </section>
+      <section class="notice">본 웹사이트는 일반 정보 제공 목적이며 개인 투자자문이 아닙니다. 과거 성과는 미래 결과를 보장하지 않습니다.</section>
+    {% else %}
+      <section class="hero">
+        <div>
+          <h1>RedPine Quant</h1>
+          <p class="lead">RedPine Quant researches systematic FX/CFD strategies, risk controls, and execution infrastructure. Visitors can review the Global Prime GP Copy structure or continue to the RPQ Fund review path.</p>
+          <div class="actions">
+            <a class="button primary" href="/copy?lang=en">Review Copy Trading<span>Global Prime GP Copy information</span></a>
+            <a class="button secondary" href="https://rpqtfund.com">Fund Review<span>Continue to RPQ Portal</span></a>
+          </div>
+        </div>
+        <aside class="panel">
+          <h2>Company Overview</h2>
+          <p>Research, execution design, and operational discipline are the center of the RPQ approach.</p>
+          <p class="muted">Public information only. For questions, contact <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+        </aside>
+      </section>
+      <section class="grid" aria-label="Overview">
+        <div class="card"><h3>Research First</h3><p class="muted">Strategy review starts with market structure, volatility, execution quality, and drawdown controls.</p></div>
+        <div class="card"><h3>Two Paths</h3><p class="muted">Visitors may review broker-side copy trading or continue to the RPQ Fund review path.</p></div>
+        <div class="card"><h3>Risk Aware</h3><p class="muted">FX/CFD trading involves leverage and can result in substantial loss of principal.</p></div>
+      </section>
+      <section class="notice">This website provides general information only and is not personal investment advice. Past performance does not guarantee future results.</section>
+    {% endif %}
   </main>
 
   <footer>
     <div class="foot">
       <span>© RedPine Quant</span>
-      <span><a href="/copy">GP Copy</a> · <a href="https://rpqtfund.com">RPQ Portal</a> · <a href="/risk">Risk</a> · <a href="/faq">FAQ</a></span>
+      <span><a href="/copy?lang={{ lang }}">GP Copy</a> · <a href="https://rpqtfund.com">RPQ Portal</a> · <a href="/risk?lang={{ lang }}">Risk</a> · <a href="/faq?lang={{ lang }}">FAQ</a></span>
     </div>
   </footer>
 </body>

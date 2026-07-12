@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="{{ lang|default('en') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -12,7 +12,11 @@
     header { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:2; }
     .nav { max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
     .brand { font-weight:800; }
+    .right { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:flex-end; }
     .links { display:flex; gap:16px; flex-wrap:wrap; font-size:15px; }
+    .lang { display:flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:999px; padding:3px; background:#f8faf7; }
+    .lang a { min-width:36px; padding:4px 9px; border-radius:999px; text-align:center; color:var(--muted); font-size:13px; font-weight:800; }
+    .lang a.active { background:var(--pine); color:#fff; }
     main { max-width:960px; margin:0 auto; padding:42px 20px 72px; }
     h1 { font-size:clamp(34px,5vw,56px); line-height:1.06; margin:0 0 16px; letter-spacing:0; }
     .lead { color:var(--muted); font-size:19px; margin:0 0 24px; }
@@ -21,87 +25,62 @@
     p { margin:0; color:var(--muted); }
     footer { border-top:1px solid var(--line); padding:24px 20px; color:var(--muted); }
     .foot { max-width:1120px; margin:0 auto; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
-    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } main { padding-top:28px; } }
+    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } .right { justify-content:flex-start; } main { padding-top:28px; } }
   </style>
 </head>
 <body>
   <header>
     <nav class="nav" aria-label="Primary">
-      <a class="brand" href="/">RedPine Quant</a>
-      <div class="links">
-        <a href="/copy">GP Copy</a>
-        <a href="/risk">Risk</a>
-        <a href="/faq">FAQ</a>
-        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      <a class="brand" href="/?lang={{ lang }}">RedPine Quant</a>
+      <div class="right">
+        <div class="links">
+          <a href="/copy?lang={{ lang }}">GP Copy</a>
+          <a href="/risk?lang={{ lang }}">Risk</a>
+          <a href="/faq?lang={{ lang }}">FAQ</a>
+          <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+        </div>
+        <div class="lang" aria-label="Language">
+          <a class="{% if lang == 'en' %}active{% endif %}" href="/faq?lang=en">EN</a>
+          <a class="{% if lang == 'ko' %}active{% endif %}" href="/faq?lang=ko">KO</a>
+        </div>
       </div>
     </nav>
   </header>
 
   <main>
-    <h1>FAQ</h1>
-    <p class="lead">Global Prime GP Copy와 RedPine Quant 공개 안내에 대한 자주 묻는 질문입니다.</p>
-
-    <section class="item">
-      <h2>1. RedPine Quant가 투자금을 직접 받는가?</h2>
-      <p>아니요. 투자자는 자금을 RedPine Quant에 송금하지 않습니다. 투자자는 본인 명의 Global Prime 계좌를 사용합니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>2. Global Prime 계좌는 누구 명의인가?</h2>
-      <p>Global Prime 계좌는 투자자 본인 명의입니다. 계좌 개설, 입출금, 카피 설정과 중단은 투자자가 직접 관리합니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>3. 원금 보호가 약속되는가?</h2>
-      <p>아니요. FX/CFD 거래는 레버리지로 인해 원금 손실 가능성이 큰 고위험 거래입니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>4. 손실이 발생할 수 있는가?</h2>
-      <p>예. 시장 급변, 레버리지, 슬리피지, 유동성 부족, 기술 장애 등으로 손실이 발생할 수 있습니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>5. 카피를 중단할 수 있는가?</h2>
-      <p>예. 카피 여부, 투자금 규모, 중단 여부는 투자자 본인이 결정합니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>6. 성과보수는 있는가?</h2>
-      <p>적용 여부와 조건은 브로커, 플랫폼, 전략 제공 조건에 따라 달라질 수 있습니다. 참여 전 최신 조건을 확인해야 합니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>7. 최소 투자금은 얼마인가?</h2>
-      <p>최소 금액은 브로커 계좌 조건과 카피 서비스 조건에 따라 달라질 수 있습니다. 본인의 위험 감수 수준에 맞춰 판단해야 합니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>8. 어떤 상품을 거래하는가?</h2>
-      <p>전략은 FX/CFD 상품을 대상으로 할 수 있습니다. 실제 거래 상품은 전략과 브로커 제공 조건에 따라 달라질 수 있습니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>9. EA나 서버에 문제가 생기면 어떻게 되는가?</h2>
-      <p>EA 오류, VPS/네트워크 장애, 브로커 장애가 발생하면 주문 지연, 누락, 예상과 다른 체결이 생길 수 있습니다.</p>
-    </section>
-
-    <section class="item">
-      <h2>10. 과거 성과는 어디서 확인할 수 있는가?</h2>
-      <p>
-        {% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}
-        {% if myfxbook_url and fxblue_url %} 또는 {% endif %}
-        {% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}
-        {% if not myfxbook_url and not fxblue_url %}현재 공개 성과 링크가 설정되어 있지 않습니다.{% endif %}
-        과거 성과는 미래 수익을 보장하지 않습니다.
-      </p>
-    </section>
+    {% if lang == 'ko' %}
+      <h1>FAQ</h1>
+      <p class="lead">Global Prime GP Copy와 RedPine Quant 공개 안내에 대해 자주 묻는 질문입니다.</p>
+      <section class="item"><h2>1. RedPine Quant가 투자금을 직접 받습니까?</h2><p>아닙니다. GP Copy 구조에서 투자자는 본인 명의의 브로커 계좌를 사용합니다.</p></section>
+      <section class="item"><h2>2. 계좌는 누구 명의입니까?</h2><p>브로커 계좌는 투자자 본인 명의입니다. 계좌 개설, 입출금, 복제 설정은 투자자가 관리합니다.</p></section>
+      <section class="item"><h2>3. 원금이 보장됩니까?</h2><p>아닙니다. FX/CFD 거래는 레버리지로 인해 원금 손실 가능성이 있는 고위험 거래입니다.</p></section>
+      <section class="item"><h2>4. 손실은 어떤 상황에서 발생합니까?</h2><p>시장 급변, 레버리지, 슬리피지, 유동성 부족, 기술 장애, 복제 차이 등으로 손실이 발생할 수 있습니다.</p></section>
+      <section class="item"><h2>5. 복제를 중단할 수 있습니까?</h2><p>복제 중단과 계좌 관리는 투자자가 직접 결정합니다. 중단 방법은 브로커 계좌 조건에 따라 다를 수 있습니다.</p></section>
+      <section class="item"><h2>6. 비용이 있습니까?</h2><p>브로커 수수료, 스프레드, 복제 서비스 조건, 성과 관련 비용은 계좌와 계약 조건에 따라 달라질 수 있습니다.</p></section>
+      <section class="item"><h2>7. 최소 투자금은 얼마입니까?</h2><p>최소 금액은 브로커 계좌 조건, 복제 서비스 조건, 투자자의 위험 감수 수준에 따라 달라질 수 있습니다.</p></section>
+      <section class="item"><h2>8. 어떤 상품을 거래합니까?</h2><p>전략은 FX/CFD 상품을 대상으로 할 수 있습니다. 실제 거래 상품은 전략과 브로커 제공 조건에 따라 달라질 수 있습니다.</p></section>
+      <section class="item"><h2>9. EA나 서버에 문제가 생기면 어떻게 됩니까?</h2><p>EA 오류, VPS/네트워크 장애, 브로커 장애가 발생하면 주문 지연, 누락, 예상과 다른 체결이 발생할 수 있습니다.</p></section>
+      <section class="item"><h2>10. 과거 성과는 어디에서 확인할 수 있습니까?</h2><p>{% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}{% if myfxbook_url and fxblue_url %} 또는 {% endif %}{% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}{% if not myfxbook_url and not fxblue_url %}현재 공개 성과 링크가 설정되어 있지 않습니다.{% endif %} 과거 성과는 미래 결과를 보장하지 않습니다.</p></section>
+    {% else %}
+      <h1>FAQ</h1>
+      <p class="lead">Frequently asked questions about Global Prime GP Copy and RedPine Quant public information.</p>
+      <section class="item"><h2>1. Does RedPine Quant receive investor funds directly?</h2><p>No. In the GP Copy structure, the investor uses a broker account in their own name.</p></section>
+      <section class="item"><h2>2. Whose name is the broker account under?</h2><p>The broker account is under the investor's name. Account opening, deposits, withdrawals, and copy settings are managed by the investor.</p></section>
+      <section class="item"><h2>3. Is principal protected?</h2><p>No. FX/CFD trading is high risk and leverage can result in loss of principal.</p></section>
+      <section class="item"><h2>4. How can losses occur?</h2><p>Losses may occur due to fast markets, leverage, slippage, low liquidity, technical failures, and copy differences.</p></section>
+      <section class="item"><h2>5. Can copying be stopped?</h2><p>Copy settings and account controls are managed by the investor. The exact process depends on broker account conditions.</p></section>
+      <section class="item"><h2>6. Are there fees?</h2><p>Broker fees, spreads, copy service terms, and performance-related costs may vary by account and agreement terms.</p></section>
+      <section class="item"><h2>7. What is the minimum investment?</h2><p>The minimum amount may vary depending on broker account conditions, copy service terms, and the investor's risk tolerance.</p></section>
+      <section class="item"><h2>8. What products are traded?</h2><p>The strategy may trade FX/CFD products. Actual instruments depend on the strategy and broker offering.</p></section>
+      <section class="item"><h2>9. What happens if the EA or server fails?</h2><p>EA errors, VPS or network failures, and broker outages can cause order delay, missed orders, or unexpected execution.</p></section>
+      <section class="item"><h2>10. Where can past performance be reviewed?</h2><p>{% if myfxbook_url %}<a href="{{ myfxbook_url }}" rel="noopener noreferrer">Myfxbook</a>{% endif %}{% if myfxbook_url and fxblue_url %} or {% endif %}{% if fxblue_url %}<a href="{{ fxblue_url }}" rel="noopener noreferrer">FXBlue</a>{% endif %}{% if not myfxbook_url and not fxblue_url %}No public performance link is currently configured.{% endif %} Past performance does not guarantee future results.</p></section>
+    {% endif %}
   </main>
 
   <footer>
     <div class="foot">
       <span>© RedPine Quant</span>
-      <span><a href="/">Home</a> · <a href="/copy">GP Copy</a> · <a href="/risk">Risk</a></span>
+      <span><a href="/?lang={{ lang }}">Home</a> · <a href="/copy?lang={{ lang }}">GP Copy</a> · <a href="/risk?lang={{ lang }}">Risk</a></span>
     </div>
   </footer>
 </body>

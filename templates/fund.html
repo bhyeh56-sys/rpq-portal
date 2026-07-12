@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="{{ lang|default('en') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>RedPine Quant 투자조합 참여 검토</title>
+  <title>Fund Review | RedPine Quant</title>
   <style>
     :root { --ink:#17201b; --muted:#5f6b63; --line:#d9e0da; --pine:#173f31; --soft:#f3f7f1; --warn:#8a4b18; }
     * { box-sizing:border-box; }
@@ -12,7 +12,11 @@
     header { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:2; }
     .nav { max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
     .brand { font-weight:800; }
+    .right { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:flex-end; }
     .links { display:flex; gap:16px; flex-wrap:wrap; font-size:15px; }
+    .lang { display:flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:999px; padding:3px; background:#f8faf7; }
+    .lang a { min-width:36px; padding:4px 9px; border-radius:999px; text-align:center; color:var(--muted); font-size:13px; font-weight:800; }
+    .lang a.active { background:var(--pine); color:#fff; }
     main { max-width:1040px; margin:0 auto; padding:42px 20px 72px; }
     h1 { font-size:clamp(34px,5vw,56px); line-height:1.06; margin:0 0 16px; letter-spacing:0; }
     h2 { font-size:24px; margin:0 0 10px; line-height:1.2; }
@@ -28,81 +32,58 @@
     .muted { color:var(--muted); }
     footer { border-top:1px solid var(--line); padding:24px 20px; color:var(--muted); }
     .foot { max-width:1120px; margin:0 auto; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
-    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } main { padding-top:28px; } }
+    @media (max-width:760px) { .nav { align-items:flex-start; flex-direction:column; } .right { justify-content:flex-start; } main { padding-top:28px; } }
   </style>
 </head>
 <body>
   <header>
     <nav class="nav" aria-label="Primary">
-      <a class="brand" href="/">RedPine Quant</a>
-      <div class="links">
-        <a href="https://redpinequant.com">Company</a>
-        <a href="https://redpinequant.com/copy">GP Copy</a>
-        <a href="https://redpinequant.com/risk">Risk</a>
-        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      <a class="brand" href="/?lang={{ lang }}">RedPine Quant</a>
+      <div class="right">
+        <div class="links">
+          <a href="https://redpinequant.com/?lang={{ lang }}">Company</a>
+          <a href="https://redpinequant.com/copy?lang={{ lang }}">GP Copy</a>
+          <a href="https://redpinequant.com/risk?lang={{ lang }}">Risk</a>
+          <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+        </div>
+        <div class="lang" aria-label="Language">
+          <a class="{% if lang == 'en' %}active{% endif %}" href="/fund?lang=en">EN</a>
+          <a class="{% if lang == 'ko' %}active{% endif %}" href="/fund?lang=ko">KO</a>
+        </div>
       </div>
     </nav>
   </header>
 
   <main>
-    <h1>RedPine Quant 투자조합 참여 검토</h1>
-    <p class="lead">전문투자자/적격 투자자를 대상으로 한 사전 문의 및 구조 검토 안내 페이지입니다. 본 페이지는 일반 정보 제공 목적입니다.</p>
-
-    <div class="sections">
-      <section class="card soft">
-        <h2>Overview</h2>
-        <p>RedPine Quant는 시스템 기반 FX/CFD 전략과 리스크 관리 프로세스를 연구합니다. 이 페이지는 투자조합 또는 펀드형 참여 구조를 검토하려는 분에게 기본적인 절차와 유의사항을 안내합니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Participation Structure</h2>
-        <p>참여 구조는 관할 법률, 투자자 자격, 계약 조건, 운영 주체, 계좌 구조, 비용 조건을 검토한 뒤 정해집니다. 실제 참여 가능 여부는 사전 검토 이후 별도로 판단됩니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Eligible Investors</h2>
-        <p>전문투자자/적격 투자자 대상 검토를 전제로 합니다. 투자 경험, 위험 감수 능력, 거주지, 법적 지위, 관련 규제 요건을 확인할 수 있습니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Strategy Summary</h2>
-        <p>전략은 FX/CFD 시장의 가격 흐름, 변동성, 포지션 크기, 체결 품질, 손실 제한 원칙을 함께 고려합니다. 세부 운용 방식은 실사 및 계약 검토 단계에서 제공될 수 있습니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Risk Management</h2>
-        <p>리스크 관리는 포지션 크기, 레버리지 수준, 손실 한도, 거래 빈도, 유동성 상태, 시스템 안정성을 함께 점검하는 방식으로 접근합니다.</p>
-      </section>
-
-      <section class="card">
-        <h2>Documents Required</h2>
-        <ul>
-          <li>신원 및 연락처 확인 자료</li>
-          <li>전문투자자/적격 투자자 여부 확인 자료</li>
-          <li>위험고지 확인서</li>
-          <li>계약 검토에 필요한 법적/세무 관련 자료</li>
-          <li>관할 국가 규제 검토에 필요한 추가 자료</li>
-        </ul>
-      </section>
-
-      <section class="card">
-        <h2>Inquiry</h2>
-        <p>사전 문의는 아래 이메일로 진행할 수 있습니다. 문의 이후에도 실제 참여 가능 여부는 별도 검토 절차에 따릅니다.</p>
-        <a class="button" href="mailto:{{ contact_email }}">사전 문의</a>
-      </section>
-
-      <section class="card risk">
-        <h2>Risk Disclosure</h2>
-        <p>본 페이지는 일반 정보 제공 목적이며 투자 권유 또는 청약 권유가 아닙니다. 실제 참여 가능 여부는 관할 법률, 투자자 자격, 계약 검토, 위험고지 확인 후 결정됩니다.</p>
-        <p>FX/CFD 및 레버리지 전략은 원금 손실 위험이 큽니다. 과거 성과는 미래 성과를 보장하지 않습니다. 한국/싱가포르 등 관련 규제 검토가 필요할 수 있습니다.</p>
-      </section>
-    </div>
+    {% if lang == 'ko' %}
+      <h1>RedPine Quant Fund 참여 검토</h1>
+      <p class="lead">전문투자자 등 적격 투자자를 대상으로 하는 사전 문의 및 구조 검토 안내 페이지입니다. 본 페이지는 일반 정보 제공 목적입니다.</p>
+      <div class="sections">
+        <section class="card soft"><h2>개요</h2><p>RedPine Quant는 시스템 기반 FX/CFD 전략과 리스크 관리 프로세스를 연구합니다. 실제 참여 가능 여부는 법률, 투자자 자격, 계약 조건, 거주지 규제 검토 이후 별도로 판단됩니다.</p></section>
+        <section class="card"><h2>참여 구조</h2><p>참여 구조는 운영 주체, 계약 조건, 계좌 구조, 비용, 환매 조건을 검토한 뒤 확정됩니다. 이 페이지의 정보만으로 참여 가능 여부가 결정되지 않습니다.</p></section>
+        <section class="card"><h2>대상 투자자</h2><p>전문투자자 또는 이에 준하는 적격 투자자 검토를 전제로 합니다. 투자 경험, 위험 감수 능력, 거주지, 법적 지위와 규제 요건을 확인해야 합니다.</p></section>
+        <section class="card"><h2>필요 자료</h2><ul><li>신원 및 연락처 확인 자료</li><li>투자자 자격 확인 자료</li><li>위험고지 확인</li><li>계약 검토에 필요한 법률/세무 관련 자료</li><li>관할 규제 검토에 필요한 추가 자료</li></ul></section>
+        <section class="card"><h2>문의</h2><p>사전 문의는 아래 이메일로 진행할 수 있습니다. 문의 후에도 실제 참여 가능 여부는 별도 검토 절차를 따릅니다.</p><a class="button" href="mailto:{{ contact_email }}">사전 문의</a></section>
+        <section class="card risk"><h2>위험 고지</h2><p>본 페이지는 투자 권유 또는 청약 권유가 아닙니다. FX/CFD 및 레버리지 전략은 원금 손실 위험이 큽니다. 과거 성과는 미래 결과를 보장하지 않습니다.</p></section>
+      </div>
+    {% else %}
+      <h1>RedPine Quant Fund Review</h1>
+      <p class="lead">This page is for preliminary inquiry and structure review by eligible or professional investors. It provides general information only.</p>
+      <div class="sections">
+        <section class="card soft"><h2>Overview</h2><p>RedPine Quant researches systematic FX/CFD strategies and risk management processes. Actual participation depends on legal review, investor eligibility, contract terms, jurisdiction, and regulatory considerations.</p></section>
+        <section class="card"><h2>Participation Structure</h2><p>The structure is determined after reviewing the operator, contract terms, account setup, fees, and redemption conditions. This page alone does not determine eligibility.</p></section>
+        <section class="card"><h2>Eligible Investors</h2><p>The review assumes professional, qualified, or otherwise eligible investors. Investment experience, risk tolerance, residence, legal status, and regulatory requirements must be checked.</p></section>
+        <section class="card"><h2>Documents Required</h2><ul><li>Identity and contact verification materials</li><li>Investor eligibility materials</li><li>Risk disclosure acknowledgement</li><li>Legal or tax materials needed for contract review</li><li>Additional documents for jurisdictional review</li></ul></section>
+        <section class="card"><h2>Inquiry</h2><p>Preliminary inquiries can be sent by email. Any actual participation remains subject to separate review.</p><a class="button" href="mailto:{{ contact_email }}">Send Inquiry</a></section>
+        <section class="card risk"><h2>Risk Disclosure</h2><p>This page is not an offer or solicitation. FX/CFD and leveraged strategies involve substantial risk of loss. Past performance does not guarantee future results.</p></section>
+      </div>
+    {% endif %}
   </main>
 
   <footer>
     <div class="foot">
       <span>© RedPine Quant</span>
-      <span><a href="https://redpinequant.com">Company</a> · <a href="https://redpinequant.com/copy">GP Copy</a></span>
+      <span><a href="https://redpinequant.com/?lang={{ lang }}">Company</a> · <a href="https://redpinequant.com/copy?lang={{ lang }}">GP Copy</a></span>
     </div>
   </footer>
 </body>

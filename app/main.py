@@ -3,7 +3,7 @@ import logging
 import os
 from decimal import Decimal, InvalidOperation
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Query, Request
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -85,13 +85,44 @@ def _chart_path(rows):
     return "M " + " L ".join(coords)
 
 
+def _public_context(request: Request, lang: str | None):
+    selected = (lang or request.query_params.get("lang") or "en").strip().lower()
+    if selected not in {"en", "ko"}:
+        selected = "en"
+    return {
+        "lang": selected,
+        "contact_email": os.getenv("CONTACT_EMAIL", "info@redpinequant.com"),
+        "global_prime_copy_url": os.getenv("GLOBAL_PRIME_COPY_URL", ""),
+        "copy_link_configured": bool(os.getenv("GLOBAL_PRIME_COPY_URL", "")),
+        "myfxbook_url": os.getenv("MYFXBOOK_URL", ""),
+        "fxblue_url": os.getenv("FXBLUE_URL", ""),
+    }
+
+
+def _is_redpine_host(request: Request):
+    host = request.headers.get("host", "").split(":", 1)[0].lower()
+    return host in {"redpinequant.com", "www.redpinequant.com"}
+
+
 @app.get("/health")
 def health():
     return {"ok": True}
 
 
 @app.get("/")
-def home(request: Request, fx_account_id: int = 1, db: Session = Depends(get_db)):
+def home(
+    request: Request,
+    fx_account_id: int = 1,
+    lang: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    if _is_redpine_host(request):
+        return templates.TemplateResponse(
+            request,
+            "company_home.html",
+            _public_context(request, lang),
+        )
+
     snap = None
     recent = []
     metrics = {
@@ -149,3 +180,23 @@ def home(request: Request, fx_account_id: int = 1, db: Session = Depends(get_db)
 @app.head("/")
 def home_head():
     return
+
+
+@app.get("/copy")
+def copy_page(request: Request, lang: str | None = Query(default=None)):
+    return templates.TemplateResponse(request, "copy.html", _public_context(request, lang))
+
+
+@app.get("/fund")
+def fund_page(request: Request, lang: str | None = Query(default=None)):
+    return templates.TemplateResponse(request, "fund.html", _public_context(request, lang))
+
+
+@app.get("/risk")
+def risk_page(request: Request, lang: str | None = Query(default=None)):
+    return templates.TemplateResponse(request, "risk.html", _public_context(request, lang))
+
+
+@app.get("/faq")
+def faq_page(request: Request, lang: str | None = Query(default=None)):
+    return templates.TemplateResponse(request, "faq.html", _public_context(request, lang))
